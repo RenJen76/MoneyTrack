@@ -2,9 +2,14 @@
 <html>
 <head>
     <?php 
-        ini_set('display_errors', 0); 
+        ini_set('display_errors', 1); 
         require 'Connection/Database.php';
         require 'Connection/Trans.php';
+        require 'Connection/ApiLogs.php';
+        require 'Connection/Vendor.php';
+        require 'Connection/Account.php';
+        require 'Connection/Category.php';
+        require 'Connection/SubCategory.php';
         require 'Service/TransService.php';
         $trans          = new Trans();
         $transService   = new TransService($trans);
@@ -15,14 +20,14 @@
     ?>
 
 </head>
-<body>
-    <div class="container well">
+<body style="height: 100vh">
+    <div class="container well" style="height: 100vh">
 
         <?php 
             require 'View/Common/NavBar.php';
         ?>
 
-        <div class="col-sm-12 main">
+        <div class="main">
             <?php 
                 switch ($_GET['route']) {
                     case 'report':
@@ -60,6 +65,14 @@
                             $transList = $transService->transByVendor($_POST['vendor']);
                             require 'View/analysisVendor.php';
                         } 
+                        break;
+                    case 'import':
+                        if ($_SERVER['REQUEST_METHOD']=='POST') {
+                            $import = $transService->import();
+                            exit;
+                        } else {
+                            require 'View/importFile.php';
+                        }
                         break;
                     default:
                         $totalSpend     = $transService->getTotalSpend();

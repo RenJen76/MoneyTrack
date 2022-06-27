@@ -4,15 +4,27 @@
 
     // use Database;
 
-    class Trans extends Database
+    class ApiLogs extends Database
     {
 
-        public $tableName = 'trans_list';
+        public $tableName = 'api_logs';
 
         public function __construct()
         {
             parent::__construct();
         }
+
+        public function writeLog($data)
+        {
+            $insertFields = [
+                'api_type'      => $data['api_type'],
+                'api_request'   => $data['api_request'],
+                'request_at'    => date('Y-m-d H:i:s')
+            ];
+            return $this->save($insertFields);
+        }
+
+        /*
 
         public function mostCostDay()
         {
@@ -70,6 +82,7 @@
             return null;
         }
 
+
         public function costVendorRank()
         {
             return $this->query("
@@ -121,26 +134,6 @@
             } 
             return null;
         }
-
-        public function createTrans($data)
-        {
-            return $this->execute("
-                insert into trans_list (account_id, spend_at, vendor_id, subcategory_id, amount, description, create_at)
-                select '".$data['accountId']."', '".$data['spendAt']."', '".$data['vendorId']."', '".$data['subcategoryId']."',
-                '".$data['amount']."', '".$data['description']."', now()
-                from DUAL
-                where not exists
-                (
-                    select trans_no 
-                    from trans_list
-                    where 
-                        account_id = '".$data['accountId']."' and vendor_id = '".$data['vendorId']."' 
-                        and amount = '".$data['amount']."' and description = '".$data['description']."' 
-                        and spend_at = '".$data['spendAt']."'
-                )
-                limit 1
-            ");
-        }
-
+        */
     }
 ?>

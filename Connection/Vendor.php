@@ -4,15 +4,51 @@
 
     // use Database;
 
-    class Trans extends Database
+    class Vendor extends Database
     {
 
-        public $tableName = 'trans_list';
+        public $tableName = 'vendor_list';
 
         public function __construct()
         {
             parent::__construct();
         }
+
+        public function findVendorByName($vendorName)
+        {
+            $vendor = $this->query("select * from $this->tableName where vendor_name = '$vendorName'");
+            if ($vendor) {
+                return $vendor[0];
+            }
+            return null;
+        }
+
+        public function findVendorById($vendorId)
+        {
+            $vendor = $this->query("select * from $this->tableName where vendor_id = '$vendorId'");
+            if ($vendor) {
+                return $vendor[0];
+            }
+            return null;
+        }
+
+        public function createVendor($vendorName)
+        {
+            return $this->save(['vendor_name' => $vendorName]);
+        }
+
+        public function findOrCreate($vendorName)
+        {
+            $vendor = $this->findVendorByName($vendorName);
+
+            if (!$vendor) {
+                return $this->findVendorById($this->createVendor($vendorName));
+            }
+
+            return $vendor;
+        }
+
+        /*
 
         public function mostCostDay()
         {
@@ -70,6 +106,7 @@
             return null;
         }
 
+
         public function costVendorRank()
         {
             return $this->query("
@@ -121,26 +158,6 @@
             } 
             return null;
         }
-
-        public function createTrans($data)
-        {
-            return $this->execute("
-                insert into trans_list (account_id, spend_at, vendor_id, subcategory_id, amount, description, create_at)
-                select '".$data['accountId']."', '".$data['spendAt']."', '".$data['vendorId']."', '".$data['subcategoryId']."',
-                '".$data['amount']."', '".$data['description']."', now()
-                from DUAL
-                where not exists
-                (
-                    select trans_no 
-                    from trans_list
-                    where 
-                        account_id = '".$data['accountId']."' and vendor_id = '".$data['vendorId']."' 
-                        and amount = '".$data['amount']."' and description = '".$data['description']."' 
-                        and spend_at = '".$data['spendAt']."'
-                )
-                limit 1
-            ");
-        }
-
+        */
     }
 ?>

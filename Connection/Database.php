@@ -15,7 +15,7 @@
             try {
 
                 $env = parse_ini_file(__DIR__ . '/../env.ini', true);
-                $pdo = new PDO("mysql:host=".$env['database']['host'].";dbname=".$env['database']['dbName'], $env['database']['username'], $env['database']['password']);
+                $pdo = new PDO("mysql:host=".$env['database']['host'].";dbname=".$env['database']['database'], $env['database']['username'], $env['database']['password']);
                 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 $this->connection = $pdo;
 
@@ -59,19 +59,20 @@
 
         public function save($condition = array())
         {
-            if ($tableName && count($condition)>0) {
+            if ($this->tableName && count($condition)>0) {
 
                 $fields = $this->buildFields($condition);
 
                 try {
 
-                    $statement  = $this->connection->prepare("insert into `$this->tableName`($fields[fieldsName]) values ($fields[fieldsValue])");
+                    $sql        = "insert into `$this->tableName`($fields[fieldsName]) values ($fields[fieldsValue])";
+                    $statement  = $this->connection->prepare($sql);
                     $statement->execute($condition);
-                    return true;
+                    return $this->lastInsertId();
 
                 } catch (Exception $e) {
 
-                    die("PDO_ERROR: " . $e->getMessage());
+                    die("PDO_ERROR: " . $e->getMessage() . " at class: " . get_class($this));
    
                 }
             }
@@ -96,5 +97,24 @@
         {
             return $this->connection->lastInsertId();
         } 
+
+        public function execute($sql)
+        {
+            if (!$sql) {
+
+                return null;
+            }
+
+            try {
+
+                return $this->connection->exec($sql);
+
+            } catch (Exception $e) {
+
+                die("PDO_ERROR: " . $e->getMessage() . " at class: " . get_class($this));
+
+            }
+
+        }
     }
 ?>
