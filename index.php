@@ -3,6 +3,7 @@
 <head>
     <?php 
         ini_set('display_errors', 1); 
+        error_reporting(E_ALL & ~E_NOTICE);
         require 'Connection/Database.php';
         require 'Connection/Trans.php';
         require 'Connection/ApiLogs.php';
@@ -15,12 +16,10 @@
         $transService   = new TransService($trans);
     ?>
     
-    <?php 
-        include 'View/Common/Head.php';
-    ?>
+    <?php include 'View/Common/Head.php';?>
 
 </head>
-<body style="height: 100vh">
+<body>
     <div class="container well" style="height: 100vh">
 
         <?php 
@@ -35,10 +34,10 @@
                         break;
                     case 'reportResult':
                         if (isset($_POST['reportDate'])) {
-                            $title     = date('Y-m-d', $_POST['reportDate']);
+                            $title     = date('Y-m-d', strtotime($_POST['reportDate']));
                             $transList = $trans->transOnDate($_POST['reportDate']);
                         } elseif (isset($_POST['reportMonth'])) {
-                            $title     = date('Y-m-d', $_POST['reportMonth']);
+                            $title     = date('Y-m-d', strtotime($_POST['reportMonth']));
                             $transList = $trans->transOnMonth($_POST['reportMonth']);
                         } else {
                             header('location: index.php?route=index');
@@ -49,6 +48,10 @@
                     case 'create':
                         $categoryList  = $transService->getCateList();
                         require 'View/create.php';
+                        break;
+                    case 'createCategory':
+                        $categoryList  = $transService->getCateList();
+                        require 'View/createCategory.php';
                         break;
                     case 'createCost':
                         $res = $trans->save([

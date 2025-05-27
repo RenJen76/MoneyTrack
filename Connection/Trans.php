@@ -23,6 +23,7 @@
                     from trans_list 
                     group by SUBSTRING(spend_at, 1, 10) 
                 ) as trans
+                group by spend_at
             ")[0];
         }
 

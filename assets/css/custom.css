@@ -1,0 +1,36 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+body {
+    min-height: 100vh;
+    background: linear-gradient(
+        120deg,
+        #fff5f5,
+        #fffbe5,
+        #f5fff5,
+        #f0ffff,
+        #f7f5ff,
+        #fff5fb
+    );
+    background-size: 100% 100%;
+    background-attachment: fixed;
+}
+.light-gray-bg {
+    background: #f8fafc;
+}
+.form-label {
+    font-size: 1.1rem;
+}
+.form-control, .form-select {
+    min-height: 48px;
+    font-size: 1rem;
+}
+.input-group-text {
+    background: #e9ecef;
+}
+.bg-gold {
+    background-color: tan;
+    color: white;
+}

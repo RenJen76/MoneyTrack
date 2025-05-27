@@ -12,17 +12,14 @@
         {
             $categoryList   = array();
             $category       = $this->trans->category();
-
             foreach ($category as $data) {
                 $categoryId = $data['category_id'];
-                $subcategory= $this->trans->subcategory($categoryId);
-                if (count($subcategory) > 0) {
-                    $categoryList[] = [
-                        'categoryId'    => $categoryId,
-                        'categoryName'  => $data['category_name'],
-                        'subcategory'   => $subcategory
-                    ];
-                }
+                $subcategory= $this->trans->subcategory($categoryId) ?: [];
+                $categoryList[] = [
+                    'categoryId'    => $categoryId,
+                    'categoryName'  => $data['category_name'],
+                    'subcategory'   => $subcategory
+                ];                
             }
             return $categoryList;
         }
@@ -30,11 +27,11 @@
         public function getTotalSpend()
         {
             $data   = $this->trans->connection->query("
-                select list.subcategory_id, category_name, sum(amount) as subcategoryAmount, cate.category_id
+                select category_name, sum(amount) as subcategoryAmount, cate.category_id
                 from trans_list list
                 inner join subcategory_list subcate on list.subcategory_id = subcate.subcategory_id
                 inner join category_list cate on subcate.category_id = cate.category_id
-                group by category_id
+                group by category_id, category_name
             ");
 
             $TotalAmount = 0;
@@ -54,11 +51,11 @@
                 // --- 取得分類明細
 
                 $categoryDetail = $this->trans->connection->query("
-                    select list.subcategory_id, subcategory_name, sum(amount) as subcategoryAmount, cate.category_id 
+                    select list.subcategory_id, subcategory_name, sum(amount) as subcategoryAmount 
                     from trans_list list
                     inner join subcategory_list subcate on list.subcategory_id = subcate.subcategory_id
                     inner join category_list cate on subcate.category_id = cate.category_id and cate.category_id = '$categoryId'
-                    group by subcategory_id
+                    group by subcategory_id, subcategory_name
                 ");
 
                 foreach ($categoryDetail as $categoryRows) {

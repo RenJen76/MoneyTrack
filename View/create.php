@@ -1,82 +1,106 @@
  
-    <link href="Resource/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.css" rel="stylesheet">
-    <script type="text/javascript" src="Resource/js/moment-with-locales.min.js"></script>
-    <script type="text/javascript" src="Resource/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+    <link href="assets/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.css" rel="stylesheet">
     <script type="text/javascript">
         $(function () {
-            $('#datetimepicker2').datetimepicker();
+            const currentDate = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
+            const currentTime = new Date().toTimeString().split(' ')[0];
+
+            $("#spendAtDate").val(currentDate)
+            $("#spendAtTime").val(currentTime)
         });
     </script>
 
-    <form class="form-horizontal form-group-lg well" action="index.php?route=store" method="POST">
-        <div class="form-group">
-            <div class="col-sm-4">
-                <p class="lead">Vendor</p>
-            </div>
-            <div class="col-sm-8">
-                <input type="text" class="form-control" name="Vendor" placeholder="Vendor">
-            </div>
-        </div>
-        <div class="form-group">
-            <div class="col-sm-4">
-                <p class="lead">Description</p>
-            </div>
-            <div class="col-sm-8">
-                <input type="text" class="form-control" name="Description" placeholder="Description">
-            </div>
-        </div>
-        <div class="form-group">
-            <div class="col-sm-4">
-                <p class="lead">Amount</p>
-            </div>
-            <div class="col-sm-8">
-                <input onkeyup="value=value.replace(/[^\d]/g,'') " onbeforepaste="clipboardData.setData('text',clipboardData.getData('text').replace(/[^\d]/g,''))"
-                id="inputEmail3" name="Cost" class="form-control" placeholder="TWD">
-            </div>
-        </div>
-        <div class="form-group">
-            <div class="col-sm-4">
-                <p class="lead">Category</p>
-            </div>
-            <div id="Cate1" class="col-sm-8">
-                <select id="test" class="form-control" placeholder="select a type" name="Category">
-                    <option class="hidden">Select a Category</option>
-                    <?php 
-                        foreach ($categoryList as $category) {
-                    ?>
+    <div class="container-fluid min-vh-100 d-flex align-items-left justify-content-left">
+        <div class="col-12 col-md-8 col-lg-12 px-0">
+            <form class="row g-4 p-4 p-md-5 bg-white shadow-lg rounded-4 mx-1 mx-md-0 border border-2 light-gray-bg" action="index.php?route=store" method="POST">
+                <h2 class="mb-4 text-center fw-bold text-secondary">新增消費紀錄</h2>
 
-                            <option class="bg-gold" disabled><?php echo $category['categoryName']?></option>
-
+                <div class="col-12 col-md-4 d-flex align-items-center justify-content-md-end justify-content-start">
+                    <label for="account" class="form-label fw-bold mb-0 w-100 text-md-end text-start">帳戶名稱</label>
+                </div>
+                <div class="col-12 col-md-8">
+                    <select id="account" class="form-select shadow-sm" name="account">
+                        <option selected disabled>請選擇帳戶</option>
                         <?php 
-                            foreach ($category['subcategory'] as $subcategory) { 
+                            foreach ($categoryList as $category) {
                         ?>
+                            <option class="fw-bold" disabled><?php echo $category['categoryName']?></option>
+                            <?php 
+                                foreach ($category['subcategory'] as $subcategory) { 
+                            ?>
                                 <option value="<?php echo $subcategory['subcategory_id']?>">
-                                    <?php echo $subcategory['subcategory_name']?>
+                                    &nbsp;&nbsp;<?php echo $subcategory['subcategory_name']?>
                                 </option>
-                        <?php 
+                            <?php 
+                                }
+                            ?>
+                        <?php
                             }
                         ?>
-
-                    <?php
-                        }
-                    ?>
-                </select>
-            </div>
-        </div>
-        <div class="form-group">
-            <div class="col-sm-4">
-                <p class="lead">Spend At</p>
-            </div>
-            <div class="col-sm-8">
-                <div class='input-group date' id='datetimepicker2'>
-                    <input type='text' id="spendAt" name="spendAt" class="form-control">
-                    <span class="input-group-addon">
-                        <span class="glyphicon glyphicon-calendar"></span>
-                    </span>
+                    </select>
                 </div>
-            </div>
+                
+                <div class="col-12 col-md-4 d-flex align-items-center justify-content-md-end justify-content-start">
+                    <label for="vendor" class="form-label fw-bold mb-0 w-100 text-md-end text-start">店家名稱</label>
+                </div>
+                <div class="col-12 col-md-8">
+                    <input type="text" class="form-control shadow-sm" id="vendor" name="Vendor" placeholder="店家名稱">
+                </div>
+
+                <div class="col-12 col-md-4 d-flex align-items-center justify-content-md-end justify-content-start">
+                    <label for="description" class="form-label fw-bold mb-0 w-100 text-md-end text-start">消費描述</label>
+                </div>
+                <div class="col-12 col-md-8">
+                    <input type="text" class="form-control shadow-sm" id="description" name="Description" placeholder="消費描述">
+                </div>
+
+                <div class="col-12 col-md-4 d-flex align-items-center justify-content-md-end justify-content-start">
+                    <label for="cost" class="form-label fw-bold mb-0 w-100 text-md-end text-start">金額</label>
+                </div>
+                <div class="col-12 col-md-8">
+                    <input type="text" pattern="\d*" inputmode="numeric"
+                        oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+                        id="cost" name="Cost" class="form-control shadow-sm" placeholder="TWD">
+                </div>
+
+                <div class="col-12 col-md-4 d-flex align-items-center justify-content-md-end justify-content-start">
+                    <label for="category" class="form-label fw-bold mb-0 w-100 text-md-end text-start">分類</label>
+                </div>
+                <div class="col-12 col-md-8">
+                    <select id="category" class="form-select shadow-sm" name="Category">
+                        <option selected disabled>請選擇分類</option>
+                        <?php 
+                            foreach ($categoryList as $category) {
+                        ?>
+                            <option class="fw-bold" disabled><?php echo $category['categoryName']?></option>
+                            <?php 
+                                foreach ($category['subcategory'] as $subcategory) { 
+                            ?>
+                                <option value="<?php echo $subcategory['subcategory_id']?>">
+                                    &nbsp;&nbsp;<?php echo $subcategory['subcategory_name']?>
+                                </option>
+                            <?php 
+                                }
+                            ?>
+                        <?php
+                            }
+                        ?>
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-4 d-flex align-items-center justify-content-md-end justify-content-start">
+                    <label for="spendAt" class="form-label fw-bold mb-0 w-100 text-md-end text-start">時間</label>
+                </div>
+                <div class="col-12 col-md-8">
+                    <div class="input-group date">
+                        <input type="date" id="spendAtDate" name="spendAtDate" class="form-control">
+                        <input type="time" id="spendAtTime" name="spendAtTime" class="form-control">
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm">新增</button>
+                </div>
+            </form>
         </div>
-        <div class="form-group">
-            <input type="button" class="btn btn-lg btn-primary btn-block" value="Create">
-        </div>
-    </form>
+    </div>
