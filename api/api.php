@@ -49,6 +49,25 @@
             }                                                                                                                                                                                                                        
             
         break;
+        
+        case 'createVendor':
+            if (!isset($postData['vendor_name']) || empty($postData['vendor_name'])) {
+                die(json_encode(['success' => false, 'error' => '店家名稱不可為空'], JSON_UNESCAPED_UNICODE));
+            }
+            $vendor = new Vendor();
+            $result = $vendor->findVendorByName($postData['vendor_name']);
+
+            if ($result) {
+                echo json_encode(['success' => false, 'error' => '店家名稱已存在']);
+                exit;
+            } 
+
+            if ($vendor->createVendor($postData['vendor_name'])) {
+                echo json_encode(['success' => true]);
+            } else {
+                echo json_encode(['success' => false, 'error' => '店家建立失敗'], JSON_UNESCAPED_UNICODE);
+            }
+        break;
         default:
                 echo json_encode(['success' => false, 'error' => '參數異常'], JSON_UNESCAPED_UNICODE);
     }

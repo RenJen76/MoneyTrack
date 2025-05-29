@@ -53,6 +53,11 @@
                         $categoryList  = $transService->getCateList();
                         require 'View/createCategory.php';
                         break;
+                    case 'createVendor':
+                        $Vendor      = new Vendor();
+                        $vendorList  = $Vendor->getAll();
+                        require 'View/createVendor.php';
+                        break;
                     case 'createCost':
                         $res = $trans->save([
                             'spend_at'       => date('Y-m-d H:i:s', $_POST['spendAt']),

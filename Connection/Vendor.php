@@ -48,6 +48,11 @@
             return $vendor;
         }
 
+        public function getAll()
+        {
+            return $this->query("select * from $this->tableName");
+        }
+
         /*
 
         public function mostCostDay()

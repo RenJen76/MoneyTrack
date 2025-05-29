@@ -19,7 +19,9 @@
                         }),
                         success: function(response) {
                             if (response.success) {
-                                // alert('分類建立成功');
+                                const toastElement = document.getElementById('category-toast');
+                                const toast = new bootstrap.Toast(toastElement);
+                                toast.show()
                                 appendChild(); 
                             } else {
                                 alert('分類建立失敗: ' + response.error);
@@ -194,23 +196,15 @@
                 });
             });            
         </script>
-        <!--
-        <div class="col-12 col-md-8 col-lg-12 px-0">
-            <div class="row g-4 p-4 p-md-5 bg-white shadow-lg rounded-4 mx-1 mx-md-0 border border-2 light-gray-bg">
-                <h2 class="mb-4 text-center fw-bold text-secondary">新增上層分類</h2>
-                
-                <div class="col-12 col-md-4 d-flex align-items-center justify-content-md-end justify-content-start">
-                    <label for="category_name" class="form-label fw-bold mb-0 w-100 text-md-end text-start">分類名稱</label>
+        <!-- Toast 通知 -->
+        <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1060">
+            <div id="category-toast" class="toast align-items-center text-white bg-success border-0" role="alert">
+                <div class="d-flex">
+                <div class="toast-body">
+                    ✅ 分類已成功建立！
                 </div>
-                <div class="col-12 col-md-8">
-                    <input type="text" class="form-control shadow-sm" id="category_name" name="category_name" placeholder="分類名稱">
-                </div>
-
-
-                <div class="col-12">
-                    <button type="button" id="submitBtn" class="btn btn-primary btn-lg w-100 shadow-sm">建立</button>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
                 </div>
             </div>
         </div>
-        -->
     </div>
