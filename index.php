@@ -46,7 +46,11 @@
                         require 'View/reportResult.php';
                         break;
                     case 'create':
-                        $categoryList  = $transService->getCateList();
+                        $Account      = new Account();
+                        $AccountList  = $Account->getAll();
+                        $categoryList = $transService->getCateList();
+                        $Vendor       = new Vendor();
+                        $vendorList   = $Vendor->getAll();
                         require 'View/create.php';
                         break;
                     case 'createCategory':
@@ -58,14 +62,10 @@
                         $vendorList  = $Vendor->getAll();
                         require 'View/createVendor.php';
                         break;
-                    case 'createCost':
-                        $res = $trans->save([
-                            'spend_at'       => date('Y-m-d H:i:s', $_POST['spendAt']),
-                            'vendor_id'      => $_POST['Vendor'],
-                            'subcategory_id' => $_POST['Category'],
-                            'amount'         => $_POST['Cost'],
-                            'description'    => $_POST['Description']
-                        ]);
+                    case 'createAccount':
+                        $Account      = new Account();
+                        $AccountList  = $Account->getAll();
+                        require 'View/createAccount.php';
                         break;
                     case 'analysisVendor':
                         if (isset($_POST['vendor'])) {

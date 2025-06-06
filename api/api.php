@@ -68,7 +68,42 @@
                 echo json_encode(['success' => false, 'error' => '店家建立失敗'], JSON_UNESCAPED_UNICODE);
             }
         break;
+        case 'createAccount':
+            if (!isset($postData['account_name']) || empty($postData['account_name'])) {
+                die(json_encode(['success' => false, 'error' => '帳戶名稱不可為空'], JSON_UNESCAPED_UNICODE));
+            }
+            $account = new Account();
+            $result = $account->findAccountByName($postData['account_name']);
+
+            if ($result) {
+                echo json_encode(['success' => false, 'error' => '帳戶名稱已存在']);
+                exit;
+            } 
+
+            if ($account->createAccount($postData['account_name'])) {
+                echo json_encode(['success' => true]);
+            } else {
+                echo json_encode(['success' => false, 'error' => '帳戶建立失敗'], JSON_UNESCAPED_UNICODE);
+            }
+        break;
+        case 'createSpend':
+            $trans = new Trans;            
+            $trans->createTrans([
+                'accountId'     => $postData['accountId'],
+                'spendAt'       => date('Y-m-d H:i:s', strtotime($postData['spendAt'])),
+                'vendorId'      => $postData['vendorId'],
+                'subcategoryId' => $postData['categoryId'],
+                'amount'        => $postData['amount'],
+                'description'   => $postData['description']
+            ]);
+            if ($trans) {     
+                echo json_encode(['success' => true]);
+            } else {
+                echo json_encode(['success' => false, 'error' => '建立失敗'], JSON_UNESCAPED_UNICODE);
+            }
+        break;
         default:
-                echo json_encode(['success' => false, 'error' => '參數異常'], JSON_UNESCAPED_UNICODE);
+            echo json_encode(['success' => false, 'error' => '參數異常'], JSON_UNESCAPED_UNICODE);
+
     }
 ?>

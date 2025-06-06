@@ -31,6 +31,7 @@
                         <li><a class="dropdown-item" href="index.php?route=create"><i class="bi bi-plus-square me-1"></i>新增一筆消費</a></li>
                         <li><a class="dropdown-item" href="index.php?route=createVendor"><i class="bi bi-shop me-1"></i>建立店家</a></li>
                         <li><a class="dropdown-item" href="index.php?route=createCategory"><i class="bi bi-tags me-1"></i>建立分類</a></li>
+                        <li><a class="dropdown-item" href="index.php?route=createAccount"><i class="bi bi-wallet2 me-1"></i>建立帳戶</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="index.php?route=import"><i class="bi bi-upload me-1"></i>匯入檔案</a></li>
                     </ul>

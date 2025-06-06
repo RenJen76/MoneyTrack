@@ -7,7 +7,7 @@
     class Account extends Database
     {
 
-        public $tableName = 'account';
+        public $tableName = 'account_list';
 
         public function __construct()
         {
@@ -25,7 +25,7 @@
 
         public function findAccountById($accountId)
         {
-            $account = $this->query("select * from $this->tableName where id = '$accountId'");
+            $account = $this->query("select * from $this->tableName where account_id = '$accountId'");
             if ($account) {
                 return $account[0];
             }
@@ -46,6 +46,11 @@
             }
 
             return $account;
+        }
+        
+        public function getAll()
+        {
+            return $this->query("select * from $this->tableName");
         }
     }
 ?>
