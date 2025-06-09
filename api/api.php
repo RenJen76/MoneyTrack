@@ -87,11 +87,17 @@
             }
         break;
         case 'createSpend':
-            $trans = new Trans;            
+            $trans  = new Trans;
+            $vendor = new Vendor();
+            if ($postData['is_createCategory']){
+                $vendor_id = $vendor->findOrCreate($postData['vendorId'])['vendor_id'];  
+            } else {
+                $vendor_id = intval($postData['vendorId']);
+            }   
             $trans->createTrans([
                 'accountId'     => $postData['accountId'],
                 'spendAt'       => date('Y-m-d H:i:s', strtotime($postData['spendAt'])),
-                'vendorId'      => $postData['vendorId'],
+                'vendorId'      => $vendor_id,
                 'subcategoryId' => $postData['categoryId'],
                 'amount'        => $postData['amount'],
                 'description'   => $postData['description']

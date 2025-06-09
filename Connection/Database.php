@@ -15,7 +15,7 @@
             try {
 
                 $env = parse_ini_file(__DIR__ . '/../env.ini', true);
-                $pdo = new PDO("mysql:host=".$env['database']['host'].";dbname=".$env['database']['database'], $env['database']['username'], $env['database']['password']);
+                $pdo = new PDO("mysql:host=".$env['database']['host'].";dbname=".$env['database']['database'].";charset=utf8mb4", $env['database']['username'], $env['database']['password']);
                 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 $this->connection = $pdo;
 
