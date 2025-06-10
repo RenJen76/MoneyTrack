@@ -14,6 +14,7 @@
         require 'Service/TransService.php';
         $trans          = new Trans();
         $transService   = new TransService($trans);
+        $route          = isset($_GET['route']) ? $_GET['route'] : 'index';
     ?>
     
     <?php include 'View/Common/Head.php';?>
@@ -28,7 +29,7 @@
 
         <div class="main">
             <?php 
-                switch ($_GET['route']) {
+                switch ($route) {
                     case 'report':
                         require 'View/report.php';
                         break;

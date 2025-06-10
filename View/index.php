@@ -1,6 +1,6 @@
     <script type="text/javascript">    
-        var seriesJson      = JSON.parse('<?php echo json_encode($totalSpend[dataJson])?>');
-        var seriseDetail    = JSON.parse('<?php echo json_encode($totalSpend[cateDetail])?>');
+        var seriesJson      = JSON.parse('<?php echo json_encode($totalSpend['dataJson'])?>');
+        var seriseDetail    = JSON.parse('<?php echo json_encode($totalSpend['cateDetail'])?>');
         var seriesData      = Object.values(seriesJson);
         $(function () {
             // Create the chart
