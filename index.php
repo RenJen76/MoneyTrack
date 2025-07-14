@@ -88,7 +88,7 @@
                         $mostCostDay    = $trans->mostCostDay();
                         $mostCostTrans  = $trans->transOnDate($mostCostDay['spend_at']);
                         $costVendorRank = $trans->costVendorRank();
-                        include 'View/index.php';
+                        include 'View/index_v2.php';
                         break;
                 }
             ?>
