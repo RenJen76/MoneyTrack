@@ -125,22 +125,44 @@
 
         public function createTrans($data)
         {
-            return $this->execute("
-                insert into trans_list (account_id, spend_at, vendor_id, subcategory_id, amount, description, create_at)
-                select '".$data['accountId']."', '".$data['spendAt']."', '".$data['vendorId']."', '".$data['subcategoryId']."',
-                '".$data['amount']."', '".$data['description']."', now()
-                from DUAL
-                where not exists
-                (
-                    select trans_no 
-                    from trans_list
-                    where 
-                        account_id = '".$data['accountId']."' and vendor_id = '".$data['vendorId']."' 
-                        and amount = '".$data['amount']."' and description = '".$data['description']."' 
-                        and spend_at = '".$data['spendAt']."'
-                )
-                limit 1
-            ");
+            $rs = $this->save([
+                'account_id' => $data['accountId'],
+                'spend_at' => $data['spendAt'],
+                'vendor_id' => $data['vendorId'],
+                'subcategory_id' => $data['subcategoryId'],
+                'amount' => $data['amount'],
+                'description' => $data['description'],
+                'create_at' => date("Y-m-d H:i:s"),
+                'hash_key' => $data['hashkey']
+            ]);
+
+            if ($rs) {
+                return $this->lastInsertId();
+            }
+
+            return 0;
+        }
+
+        public function getTransByHashKey($HashKey)
+        {
+            return $this->query("select trans_no from trans_list where hash_key = '$HashKey'");
+        }
+
+        public function getTrans($transId)
+        {
+            if ($transId) {
+                return $this->query("
+                    select 
+                        list.subcategory_id, category_name, amount, cate.category_id, spend_at, 
+                        vendor.vendor_name, description, subcate.subcategory_name
+                    from trans_list list
+                    inner join subcategory_list subcate on list.subcategory_id = subcate.subcategory_id
+                    inner join category_list cate on subcate.category_id = cate.category_id
+                    inner join vendor_list vendor on list.vendor_id = vendor.vendor_id
+                    where list.trans_no = '$transId'
+                ");
+            } 
+            return null;
         }
 
     }

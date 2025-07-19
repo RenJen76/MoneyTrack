@@ -78,10 +78,9 @@
                     case 'import':
                         if ($_SERVER['REQUEST_METHOD']=='POST') {
                             $import = $transService->import();
-                            exit;
-                        } else {
-                            require 'View/importFile.php';
                         }
+
+                        require 'View/importFile.php';
                         break;
                     default:
                         $totalSpend     = $transService->getTotalSpend();

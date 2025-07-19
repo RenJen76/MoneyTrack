@@ -23,7 +23,7 @@ body {
 .form-label {
     font-size: 1.1rem;
 }
-.form-control, .form-select {
+.form-select {
     min-height: 48px;
     font-size: 1rem;
 }

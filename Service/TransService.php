@@ -99,32 +99,57 @@
             $Account        = new Account();
             $Category       = new Category();
             $SubCategory    = new SubCategory();
+            $insertRows     = [];
 
             if (($handle = fopen($_FILES['uploadFile']['tmp_name'], "r")) !== FALSE) {
                 while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                    if ($data[3]) {
+                        // 轉帳交易
+                        continue;
+                    }
                     // 有金額及店家名稱
-                    if ((int)$data[9]!='0' && $data[5]!='') {
+                    if ((int)$data[10]!='0' && $data[5]!='') {
+                        $hashkey             = hash('sha256', $data[0].$data[2].$data[4].$data[5].$data[7].$data[8].$data[10]);
+                        $TransByHashKey      = $this->trans->getTransByHashKey($hashkey);
+                        if ($TransByHashKey) {
+                            continue;
+                        }
+
                         $categoryCombin      = $this->parseCategory($data[6]);
                         $category            = $Category->findOrCreate($categoryCombin[0]);
-                        $this->trans->createTrans([
-                            'accountId'      => $Account->findOrCreate(addslashes($data[2]))['id'],
+                        $rows                = [
+                            'accountId'      => $Account->findOrCreate($data[2])['account_id'],
                             'description'    => addslashes($data[4]),
                             'vendorId'       => $Vendor->findOrCreate(addslashes($data[5]))['vendor_id'],
                             'subcategoryId'  => $SubCategory->findOrCreate($categoryCombin[1], $category['category_id'])['subcategory_id'],
                             'spendAt'        => date("Y-m-d H:i:s", strtotime($data[7] . " " . $data[8])),
-                            'amount'         => addslashes($data[9])
-                        ]);
+                            'amount'         => intval($data[10]),
+                            'hashkey'        => $hashkey
+                        ];
+                        $transId             = $this->trans->createTrans($rows);
+                        
+                        if ($transId!=0) {
+                            $insertRows[]    = $this->trans->getTrans($transId)[0];
+                        }
                     }
                 }
             }
+
+            return $insertRows;
         }
 
         public function parseCategory($category)
         {
-            $categoryArray = explode(">", $category);
-            return array_map(function($categoryName){
+            $categoryArray = explode("▶︎", $category);
+            $categoryArray = array_map(function($categoryName){
                 return trim($categoryName);
             }, $categoryArray);
+
+            if (count($categoryArray) === 1) {
+                $categoryArray[] = $categoryArray[0];
+            }
+
+            return $categoryArray;
         }
     }
 ?>

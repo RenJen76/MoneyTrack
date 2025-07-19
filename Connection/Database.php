@@ -72,7 +72,7 @@
 
                 } catch (Exception $e) {
 
-                    die("PDO_ERROR: " . $e->getMessage() . " at class: " . get_class($this) . " Stack trace:" . $e->getTraceAsString());
+                    die("PDO_ERROR: " . $e->getMessage() . " at class: " . get_class($this) . " Stack trace:" . $e->getTraceAsString() . " execute sql:" . $sql);
    
                 }
             }
@@ -111,7 +111,7 @@
 
             } catch (Exception $e) {
 
-                die("PDO_ERROR: " . $e->getMessage() . " at class: " . get_class($this) . " Stack trace:" . $e->getTraceAsString());
+                die("PDO_ERROR: " . $e->getMessage() . " at class: " . get_class($this) . " Stack trace:" . $e->getTraceAsString() . " execute sql:" . $sql);
 
             }
 
