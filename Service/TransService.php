@@ -35,6 +35,8 @@
             ");
 
             $TotalAmount = 0;
+            $dataJson    = [];
+            $cateDetail  = [];
 
             foreach ($data as $row) {
 
@@ -150,6 +152,44 @@
             }
 
             return $categoryArray;
+        }
+
+        public function getThisMonthSpend()
+        {
+            $amounts   = 0;
+            $today     = date('Y-m-d');
+            $today     = '2025-06-01';
+            $fromMonth = date('Y-m-01', strtotime($today));
+            $asOfMonth = date('Y-m-t', strtotime($today));
+            $trans  = $this->trans->transBetweenDays($fromMonth, $asOfMonth);
+            foreach ($trans as $record) {
+                $amounts += $record['amount'];
+            }
+            return $amounts;
+        }
+
+        public function getDailyCostsInRange($fromDate, $toDate)
+        {
+            $fromDate   = date('Y-m-d', strtotime($fromDate));
+            $toDate     = date('Y-m-d', strtotime($toDate));
+            $trans      = $this->trans->transBetweenDays($fromDate, $toDate);
+            $records    = [];
+            $category   = [];
+            $category   = array_unique(array_column($trans, 'category_name'));
+            foreach ($trans as $row) {
+                $spendAt        = date('Y-m-d', strtotime($row['spend_at']));
+                $category_name  = $row['category_name'];
+                if (!isset($records[$spendAt])) {
+                    foreach ($category as $cate) {
+                        $records[$spendAt][$cate] = 0;
+                    }
+                }
+                $records[$spendAt][$category_name] += $row['amount'];
+            }
+            return [
+                'record' => $records,
+                'category' => $category
+            ];
         }
     }
 ?>

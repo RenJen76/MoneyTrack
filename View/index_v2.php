@@ -147,7 +147,7 @@
         <div class="col-md-4">
             <div class="stat-card expense">
                 <i class="fas fa-credit-card fa-2x mb-2"></i>
-                <div class="stat-value">$8,230</div>
+                <div class="stat-value">$<?php echo number_format($thisMonthsSpend)?></div>
                 <div>本月支出</div>
             </div>
         </div>
@@ -176,17 +176,20 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label text-white">分類</label>
-                <select id="categoryFilter" class="form-select">
+                <select id="categoryFilter" class="form-control">
                     <option value="">全部分類</option>
-                    <option value="food">餐飲</option>
-                    <option value="transport">交通</option>
-                    <option value="entertainment">娛樂</option>
-                    <option value="shopping">購物</option>
+                    <?php 
+                        foreach ($categoryList as $category) {
+                            $categoryId     = $category['categoryId'];
+                            $categoryName   = $category['categoryName'];
+                            echo "<option value='$categoryId'>$categoryName</option>";
+                        }
+                    ?>
                 </select>
             </div>
             <div class="col-md-3">
                 <label class="form-label text-white">&nbsp;</label>
-                <button class="btn btn-dark d-block w-100 btn-lg" onclick="applyFilters()">
+                <button class="btn btn-dark d-block w-100" onclick="applyFilters()">
                     <i class="fas fa-search me-2"></i>篩選
                 </button>
             </div>
@@ -216,7 +219,7 @@
                         <i class="fas fa-chart-pie me-2 text-success"></i>分類分佈
                     </h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body mb-3">
                     <div class="chart-container">
                         <canvas id="categoryChart"></canvas>
                     </div>
@@ -318,9 +321,40 @@
         </div>
     </div>
 </div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 <script>
+    const spend_rows = <?php echo json_encode($dailyCosts)?>;
+    const categorys  = <?php echo json_encode($categoryList)?>;
+    const varColors  = ["#ff6384", "#36a2eb", "#4caf50", "#ffce56", "#9966ff"];
+    // 詳細分類數據
+    const detailedCategoryData = {
+        '餐飲': {
+            labels: ['便當', '飲料', '零食', '外食', '早餐'],
+            datasets: [{
+                data: [12, 8, 5, 7, 3],
+                backgroundColor: ['#ffcc80', '#ff9800', '#f57400', '#e65100', '#bf360c']
+            }]
+        },
+        '交通': {
+            labels: ['公車', '捷運', '計程車', '停車'],
+            datasets: [{
+                data: [6, 4, 3, 2],
+                backgroundColor: ['#a5d6a7', '#4caf50', '#388e3c', '#2e7d32']
+            }]
+        }
+        // ... 其他分類
+    };
+    let datasets = [];
+    let categoryDataHistory = [];
+
+    Object.values(spend_rows.category).forEach(category_name => {
+        datasets.push({
+            label: category_name,
+            data: Object.values(spend_rows.record).map(item => Math.abs(item[category_name] || 0)),
+            backgroundColor: varColors[datasets.length % varColors.length],
+            stack: 'Stack 0'
+        });
+    });
+    console.log(datasets);
     // 註冊縮放插件
     Chart.register(ChartZoom);
     
@@ -329,28 +363,10 @@
     const categoryCtx = document.getElementById('categoryChart').getContext('2d');
 
     const trendChart = new Chart(trendCtx, {
-        type: 'line',
+        type: 'bar',
         data: {
-            labels: ['1/1', '1/2', '1/3', '1/4', '1/5', '1/6', '1/7', '1/8', '1/9', '1/10', '1/11', '1/12', '1/13', '1/14', '1/15'],
-            datasets: [{
-                label: '支出',
-                data: [200, 450, 300, 600, 280, 520, 380, 420, 650, 300, 480, 560, 320, 400, 580],
-                borderColor: '#ff6b6b',
-                backgroundColor: 'rgba(255, 107, 107, 0.1)',
-                tension: 0.4,
-                fill: true,
-                pointRadius: 4,
-                pointHoverRadius: 8
-            }, {
-                label: '收入',
-                data: [800, 0, 1200, 0, 900, 0, 1100, 0, 1500, 0, 950, 0, 1300, 0, 1000],
-                borderColor: '#4ecdc4',
-                backgroundColor: 'rgba(78, 205, 196, 0.1)',
-                tension: 0.4,
-                fill: true,
-                pointRadius: 4,
-                pointHoverRadius: 8
-            }]
+            labels: Object.keys(spend_rows.record),
+            datasets: datasets
         },
         options: {
             responsive: true,
@@ -362,6 +378,26 @@
             plugins: {
                 legend: {
                     position: 'top',
+                },
+                tooltip: {
+                    filter: function(tooltipItem) {
+                        return tooltipItem.parsed.y !== 0;
+                    },
+                    // 自定義 tooltip 的顯示方式
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            // 只有當有非零值時才顯示標題
+                            const hasNonZero = tooltipItems.some(item => item.parsed.y !== 0);
+                            return hasNonZero ? tooltipItems[0].label : '';
+                        },
+                        label: function(context) {
+                            console.log(context)
+                            if (context.parsed.y === 0) {
+                                return null;
+                            }
+                            return context.dataset.label + ': $' + context.parsed.y;
+                        }
+                    }
                 },
                 title: {
                     display: true,
@@ -407,85 +443,6 @@
         }
     });
 
-    // const categoryChart = new Chart(categoryCtx, {
-    //     type: 'pie',
-    //     data: {
-    //         labels: ['1/1', '1/2', '1/3', '1/4', '1/5', '1/6', '1/7', '1/8', '1/9', '1/10', '1/11', '1/12', '1/13', '1/14', '1/15'],
-    //         datasets: [{
-    //             label: '支出',
-    //             data: [200, 450, 300, 600, 280, 520, 380, 420, 650, 300, 480, 560, 320, 400, 580],
-    //             borderColor: '#ff6b6b',
-    //             backgroundColor: 'rgba(255, 107, 107, 0.1)',
-    //             tension: 0.4,
-    //             fill: true,
-    //             pointRadius: 4,
-    //             pointHoverRadius: 8
-    //         }, {
-    //             label: '收入',
-    //             data: [800, 0, 1200, 0, 900, 0, 1100, 0, 1500, 0, 950, 0, 1300, 0, 1000],
-    //             borderColor: '#4ecdc4',
-    //             backgroundColor: 'rgba(78, 205, 196, 0.1)',
-    //             tension: 0.4,
-    //             fill: true,
-    //             pointRadius: 4,
-    //             pointHoverRadius: 8
-    //         }]
-    //     },
-    //     options: {
-    //         responsive: true,
-    //         maintainAspectRatio: false,
-    //         interaction: {
-    //             intersect: false,
-    //             mode: 'index'
-    //         },
-    //         plugins: {
-    //             legend: {
-    //                 position: 'top',
-    //             },
-    //             title: {
-    //                 display: true,
-    //                 text: '每日收支趨勢 (可縮放和拖拽)',
-    //                 font: {
-    //                     size: 14
-    //                 }
-    //             },
-    //             zoom: {
-    //                 pan: {
-    //                     enabled: true,
-    //                     mode: 'x',
-    //                     scaleMode: 'x'
-    //                 },
-    //                 zoom: {
-    //                     wheel: {
-    //                         enabled: true,
-    //                         speed: 0.1
-    //                     },
-    //                     pinch: {
-    //                         enabled: true
-    //                     },
-    //                     mode: 'x',
-    //                     scaleMode: 'x'
-    //                 }
-    //             }
-    //         },
-    //         scales: {
-    //             x: {
-    //                 title: {
-    //                     display: true,
-    //                     text: '日期'
-    //                 }
-    //             },
-    //             y: {
-    //                 beginAtZero: true,
-    //                 title: {
-    //                     display: true,
-    //                     text: '金額 (NT$)'
-    //                 }
-    //             }
-    //         }
-    //     }
-    // });
-
     const categoryChart = new Chart(categoryCtx, {
         type: 'doughnut',
         data: {
@@ -530,11 +487,57 @@
                     }
                 }
             },
+            onClick: function(event, elements) {
+                if (elements.length > 0) {
+                    const clickedIndex = elements[0].index;
+                    const clickedLabel = this.data.labels[clickedIndex];
+                    
+                    if (detailedCategoryData[clickedLabel]) {
+                        // 儲存當前狀態
+                        categoryDataHistory.push({
+                            data: JSON.parse(JSON.stringify(this.data)),
+                            title: this.options.plugins.title.text
+                        });
+                        
+                        // 切換到詳細視圖
+                        this.data = detailedCategoryData[clickedLabel];
+                        this.options.plugins.title.text = clickedLabel + ' - 詳細分項';
+                        this.update();
+                        
+                        // 顯示返回按鈕
+                        showCategoryBackButton();
+                    }
+                }
+            },
             onHover: (event, activeElements) => {
                 event.native.target.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
             }
         }
     });
+
+    function showCategoryBackButton() {
+        let backBtn = document.getElementById('categoryBackBtn');
+        if (!backBtn) {
+            backBtn = document.createElement('button');
+            backBtn.id = 'categoryBackBtn';
+            backBtn.className = 'btn btn-sm btn-outline-secondary mt-2';
+            backBtn.innerHTML = '<i class="fas fa-arrow-left"></i> 返回';
+            backBtn.onclick = goBackToMainCategory;
+            document.querySelector('#categoryChart').parentNode.appendChild(backBtn);
+        }
+        backBtn.style.display = 'inline-block';
+    }
+
+    function goBackToMainCategory() {
+        if (categoryDataHistory.length > 0) {
+            const previousState = categoryDataHistory.pop();
+            categoryChart.data = previousState.data;
+            categoryChart.options.plugins.title.text = previousState.title;
+            categoryChart.update();
+            
+            document.getElementById('categoryBackBtn').style.display = 'none';
+        }
+    }
 
     // 添加重置縮放按鈕
     const resetZoomBtn = document.createElement('button');

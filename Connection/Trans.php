@@ -13,7 +13,7 @@
         {
             parent::__construct();
         }
-
+        /*
         public function mostCostDay()
         {
             return $this->query("
@@ -26,7 +26,7 @@
                 group by spend_at
             ")[0];
         }
-
+        */
         public function transOnDate($transDate)
         {
             if ($transDate) {
@@ -49,12 +49,12 @@
             return null;
         }
 
-        public function transOnMonth($transMonth)
+        public function transBetweenDays($dayStart, $dayEnd)
         {
-            if ($transMonth) {
+            if ($dayStart && $dayEnd) {
 
-                $fromMonth = date('Y-m-01', strtotime($transMonth));
-                $asOfMonth = date('Y-m-t', strtotime($transMonth));
+                $fromMonth = date('Y-m-d', strtotime($dayStart));
+                $asOfMonth = date('Y-m-d', strtotime($dayEnd));
 
                 return $this->query("
                     select 

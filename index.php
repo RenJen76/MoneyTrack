@@ -39,7 +39,7 @@
                             $transList = $trans->transOnDate($_POST['reportDate']);
                         } elseif (isset($_POST['reportMonth'])) {
                             $title     = date('Y-m-d', strtotime($_POST['reportMonth']));
-                            $transList = $trans->transOnMonth($_POST['reportMonth']);
+                            // $transList = $trans->transOnMonth($_POST['reportMonth']);
                         } else {
                             header('location: index.php?route=index');
                             exit;
@@ -84,9 +84,13 @@
                         break;
                     default:
                         $totalSpend     = $transService->getTotalSpend();
-                        $mostCostDay    = $trans->mostCostDay();
-                        $mostCostTrans  = $trans->transOnDate($mostCostDay['spend_at']);
+                        // $mostCostDay    = $trans->mostCostDay();
+                        // $mostCostTrans  = $trans->transOnDate($mostCostDay['spend_at']);
+                        $categoryList   = $transService->getCateList();
+                        $thisMonthsSpend= $transService->getThisMonthSpend();
                         $costVendorRank = $trans->costVendorRank();
+                        $dailyCosts     = $transService->getDailyCostsInRange('2025-06-01', '2025-06-29');
+                        // $spendRows      = $trans
                         include 'View/index_v2.php';
                         break;
                 }
