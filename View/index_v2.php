@@ -321,28 +321,51 @@
         </div>
     </div>
 </div>
+<?php
+echo "<pre>";print_r($dailyCostByCategory);
+?>
 <script>
     const spend_rows = <?php echo json_encode($dailyCosts)?>;
     const categorys  = <?php echo json_encode($categoryList)?>;
+    const dailyCostByCategory = <?php echo json_encode($dailyCostByCategory)?>;
     const varColors  = ["#ff6384", "#36a2eb", "#4caf50", "#ffce56", "#9966ff"];
-    // 詳細分類數據
-    const detailedCategoryData = {
-        '餐飲': {
-            labels: ['便當', '飲料', '零食', '外食', '早餐'],
-            datasets: [{
-                data: [12, 8, 5, 7, 3],
-                backgroundColor: ['#ffcc80', '#ff9800', '#f57400', '#e65100', '#bf360c']
-            }]
-        },
-        '交通': {
-            labels: ['公車', '捷運', '計程車', '停車'],
-            datasets: [{
-                data: [6, 4, 3, 2],
-                backgroundColor: ['#a5d6a7', '#4caf50', '#388e3c', '#2e7d32']
-            }]
+
+    // 產生每個 varColor 的五階漸層色（由深到淺）
+    function generateColorShades(hex, steps = 5) {
+        // 將 hex 轉為 rgb
+        let r = parseInt(hex.substr(1,2),16);
+        let g = parseInt(hex.substr(3,2),16);
+        let b = parseInt(hex.substr(5,2),16);
+        let shades = [];
+        for(let i=0; i<steps; i++) {
+            // 由 1 到 0.4（深）線性插值到 1（原色），再到 1.6（亮）
+            let factor = 1 - (i * 0.15); // 1, 0.85, 0.7, 0.55, 0.4
+            let nr = Math.round(r * factor + 255 * (1 - factor));
+            let ng = Math.round(g * factor + 255 * (1 - factor));
+            let nb = Math.round(b * factor + 255 * (1 - factor));
+            shades.push(`rgb(${nr},${ng},${nb})`);
         }
-        // ... 其他分類
-    };
+        return shades;
+    }
+
+    function getMaincategory(MainCategory, subCategory) 
+    {
+        for (const mainCategory of Object.keys(MainCategory)) {
+            if (Object.keys(MainCategory[mainCategory]).includes(subCategory)) {
+                return mainCategory;
+            }
+        }
+
+        return '';
+    }
+
+    // 生成所有 varColors 的漸層色陣列
+    const varColorShades = varColors.map(color => generateColorShades(color, 5));
+    // varColorShades[0] 是 varColors[0] 的五階漸層色，由深到淺
+
+    // 詳細分類數據
+    const detailedCategoryData = {};
+    const categoryRank = {};
     let datasets = [];
     let categoryDataHistory = [];
 
@@ -354,7 +377,27 @@
             stack: 'Stack 0'
         });
     });
-    console.log(datasets);
+
+    Object.keys(dailyCostByCategory).forEach((category_name, row) => {
+        detailedCategoryData[category_name] = {
+            'labels': Object.keys(dailyCostByCategory[category_name]),
+            'datasets': [{
+                data: Object.values(dailyCostByCategory[category_name]),
+                backgroundColor: varColorShades[row]
+            }]
+        };
+        categoryRank[category_name] = {
+            'amounts' : Math.abs(Object.values(dailyCostByCategory[category_name]).reduce((sum, item) => sum + item, 0))
+        };
+    });
+
+    categoryTotalCosts = Object.values(categoryRank).reduce((sum, item) => sum + item.amounts, 0);
+    Object.keys(categoryRank).forEach(categoryName => {
+        categoryRank[categoryName].percent = ((categoryRank[categoryName]['amounts'] / categoryTotalCosts) * 100).toFixed(1);
+    })
+
+    console.log(dailyCostByCategory)
+    console.log(categoryRank);
     // 註冊縮放插件
     Chart.register(ChartZoom);
     
@@ -386,9 +429,11 @@
                     // 自定義 tooltip 的顯示方式
                     callbacks: {
                         title: function(tooltipItems) {
+                            console.log(tooltipItems)
                             // 只有當有非零值時才顯示標題
                             const hasNonZero = tooltipItems.some(item => item.parsed.y !== 0);
-                            return hasNonZero ? tooltipItems[0].label : '';
+                            const totalCosts = tooltipItems.reduce((sum, item) => sum + item.parsed.y, 0);
+                            return hasNonZero ? tooltipItems[0].label + ': $' + totalCosts.toLocaleString() : '';
                         },
                         label: function(context) {
                             console.log(context)
@@ -439,16 +484,62 @@
                         text: '金額 (NT$)'
                     }
                 }
+            },
+            // 新增 onClick callback
+            onClick: function(event, elements) {
+                if (elements.length > 0) {
+                    const clickedIndex = elements[0].index;
+                    const clickedDate = this.data.labels[clickedIndex];
+                    showDayDetail(clickedDate); // 呼叫你自訂的函式
+                }
+            },
+            onHover: (event, activeElements) => {
+                event.native.target.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
             }
         }
     });
 
+    function showDayDetail(date) 
+    {
+        fetch(`api/api.php`, {
+            method: 'POST',
+            body: JSON.stringify({action: 'getDailyCostByDate', date: date }),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.length > 0) {
+                let detailHtml = `<h5>${date} 的消費明細</h5>`;
+                detailHtml += '<ul class="list-group">';
+                data.forEach(item => {
+                    detailHtml += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>${item.category} - ${item.description}</span>
+                        <span class="badge bg-primary rounded-pill">$${item.amount.toLocaleString()}</span>
+                    </li>`;
+                });
+                detailHtml += '</ul>';
+                
+                // 顯示在一個模態框或其他地方
+                document.getElementById('expenseDetailModalBody').innerHTML = detailHtml;
+                $('#expenseDetailModal').modal('show');
+            } else {
+                alert('沒有該日期的消費記錄。');
+            }
+        })
+        .catch(error => {
+            console.error('獲取消費明細時出錯:', error);
+            alert('無法獲取消費明細，請稍後再試。');
+        }); 
+    }
+
     const categoryChart = new Chart(categoryCtx, {
         type: 'doughnut',
         data: {
-            labels: ['餐飲', '交通', '娛樂', '購物', '其他'],
+            labels: Object.keys(dailyCostByCategory),
             datasets: [{
-                data: [35, 15, 25, 20, 5],
+                data: Object.values(categoryRank).map(item => item.percent),
                 backgroundColor: [
                     '#ff9800',
                     '#4caf50',
@@ -478,11 +569,19 @@
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            const label = context.label || '';
-                            const value = context.parsed || 0;
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = ((value / total) * 100).toFixed(1);
-                            return `${label}: ${percentage}% (${(value * 100).toLocaleString()})`;
+                            console.log(context)
+                            let percent, labelAmounts, mainCategory;
+                            let label = context.label || '';
+                            let isMainCategory = (Object.keys(dailyCostByCategory).indexOf(label) !== -1);
+                            if (isMainCategory) {
+                                labelAmounts = categoryRank[label]['amounts'];
+                                percent      = context.formattedValue;
+                            } else {
+                                mainCategory = getMaincategory(dailyCostByCategory, label);
+                                labelAmounts = Math.abs(context.parsed);
+                                percent      = (labelAmounts / categoryRank[mainCategory]['amounts'] * 100).toFixed(1);
+                            }
+                            return `${label}: ${percent}% (${(labelAmounts).toLocaleString()}$)`;
                         }
                     }
                 }

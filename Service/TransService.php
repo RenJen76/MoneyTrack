@@ -191,5 +191,23 @@
                 'category' => $category
             ];
         }
+
+        public function getDailyCostByCategory($fromDate, $toDate)
+        {
+            $fromDate   = date('Y-m-d', strtotime($fromDate));
+            $toDate     = date('Y-m-d', strtotime($toDate));
+            $trans      = $this->trans->transBetweenDays($fromDate, $toDate);
+            $records    = [];
+            foreach ($trans as $row) {
+                $category_name      = $row['category_name'];
+                $subcategory_name   = $row['subcategory_name'];
+                if (!isset($records[$category_name][$subcategory_name])) {
+                    $records[$category_name][$subcategory_name] = 0;
+                } else {
+                    $records[$category_name][$subcategory_name]+= $row['amount'];
+                }
+            }
+            return $records;
+        }
     }
 ?>

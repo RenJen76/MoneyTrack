@@ -83,13 +83,14 @@
                         require 'View/importFile.php';
                         break;
                     default:
-                        $totalSpend     = $transService->getTotalSpend();
+                        $totalSpend         = $transService->getTotalSpend();
                         // $mostCostDay    = $trans->mostCostDay();
                         // $mostCostTrans  = $trans->transOnDate($mostCostDay['spend_at']);
-                        $categoryList   = $transService->getCateList();
-                        $thisMonthsSpend= $transService->getThisMonthSpend();
-                        $costVendorRank = $trans->costVendorRank();
-                        $dailyCosts     = $transService->getDailyCostsInRange('2025-06-01', '2025-06-29');
+                        $categoryList       = $transService->getCateList();
+                        $thisMonthsSpend    = $transService->getThisMonthSpend();
+                        // $costVendorRank = $trans->costVendorRank();
+                        $dailyCosts         = $transService->getDailyCostsInRange('2025-06-01', '2025-06-29');
+                        $dailyCostByCategory= $transService->getDailyCostByCategory('2025-06-01', '2025-06-29');
                         // $spendRows      = $trans
                         include 'View/index_v2.php';
                         break;

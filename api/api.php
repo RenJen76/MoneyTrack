@@ -108,6 +108,17 @@
                 echo json_encode(['success' => false, 'error' => '建立失敗'], JSON_UNESCAPED_UNICODE);
             }
         break;
+
+        case 'getDailyCostByDate':
+            if (!isset($postData['date']) || empty($postData['date'])) {
+                echo json_encode(['success' => false, 'error' => '日期不可為空'], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+            $trans       = new Trans();
+            $transRecord = $trans->transBetweenDays($postData['date'],$postData['date']);
+            if ($transRecord) {
+                echo json_encode(['success' => true, 'data' => $transRecord]);
+            }
         default:
             echo json_encode(['success' => false, 'error' => '參數異常'], JSON_UNESCAPED_UNICODE);
 

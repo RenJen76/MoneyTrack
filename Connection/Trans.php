@@ -53,8 +53,8 @@
         {
             if ($dayStart && $dayEnd) {
 
-                $fromMonth = date('Y-m-d', strtotime($dayStart));
-                $asOfMonth = date('Y-m-d', strtotime($dayEnd));
+                $fromMonth = date('Y-m-d 00:00:00', strtotime($dayStart));
+                $asOfMonth = date('Y-m-d 23:59:59', strtotime($dayEnd));
 
                 return $this->query("
                     select 
