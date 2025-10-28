@@ -9,6 +9,10 @@
         /* min-height: 100vh; */
         /* font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; */
     /* } */
+
+    .bg-info {
+        background-color: rgb(86 194 215) !important;
+    }
     
     .card {
         border: none;
@@ -98,10 +102,10 @@
         box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
     
-    .expense-item.food { border-left-color: #ff9800; }
-    .expense-item.transport { border-left-color: #4caf50; }
-    .expense-item.entertainment { border-left-color: #e91e63; }
-    .expense-item.shopping { border-left-color: #9c27b0; }
+    .expense-item.borderline { border-left-color: #9bc5e9; }
+    /* .expense-item.transport { border-left-color: #4caf50; } */
+    /* .expense-item.entertainment { border-left-color: #e91e63; } */
+    /* .expense-item.shopping { border-left-color: #9c27b0; } */
     
     .chart-container {
         position: relative;
@@ -140,21 +144,21 @@
         <div class="col-md-4">
             <div class="stat-card">
                 <i class="fas fa-coins fa-2x mb-2"></i>
-                <div class="stat-value">$12,450</div>
+                <div class="stat-value">$<?php echo number_format($thisMonthIncome)?></div>
                 <div>本月收入</div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="stat-card expense">
                 <i class="fas fa-credit-card fa-2x mb-2"></i>
-                <div class="stat-value">$<?php echo number_format($thisMonthsSpend)?></div>
+                <div class="stat-value">$<?php echo number_format($thisMonthSpend)?></div>
                 <div>本月支出</div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="stat-card budget">
                 <i class="fas fa-piggy-bank fa-2x mb-2"></i>
-                <div class="stat-value">$4,220</div>
+                <div class="stat-value">$<?php echo number_format($thisMonthIncome+$thisMonthSpend)?></div>
                 <div>本月結餘</div>
             </div>
         </div>
@@ -234,30 +238,46 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-list me-2 text-info"></i>今日消費明細
+                        <i class="fas fa-list me-2 text-primary"></i>最新消費明細
                     </h5>
-                    <span class="badge bg-primary">共 8 筆</span>
+                    <span class="badge bg-primary">共 <?php echo count($lastTransRecord)?> 筆</span>
                 </div>
                 <div class="card-body">
                     <div id="expenseList">
-                        <div class="expense-item food">
+                    <?php
+                        foreach ($lastTransRecord as $transRows) {
+                    ?>
+                        <div class="expense-item borderline">
                             <div class="row align-items-center">
+                                <div class="col-md-1">
+                                    <i class="fas <?php echo $transRows['icon_name']?> fa-2x text-secondary"></i>
+                                </div>
+                                
                                 <div class="col-md-2">
-                                    <i class="fas fa-utensils fa-2x text-warning"></i>
+                                    <span class="badge bg-primary"><?php echo $transRows['account_name'];?></span>
+                                    <span class="badge bg-info"><?php echo $transRows['category_name'].">".$transRows['subcategory_name']?></span>
                                 </div>
-                                <div class="col-md-4">
-                                    <h6 class="mb-1">午餐 - 便當</h6>
-                                    <small class="text-muted">12:30</small>
+
+                                <div class="col-md-7">
+                                    <h6 class="mb-1">
+                                        <span><?php echo $transRows['description']."(".$transRows['vendor_name'].")";?></span>
+                                    </h6>
+                                    <small class="text-muted"><?php echo $transRows['spend_at'];?></small>
                                 </div>
-                                <div class="col-md-3">
-                                    <span class="badge bg-warning">餐飲</span>
-                                </div>
-                                <div class="col-md-3 text-end">
-                                    <h6 class="mb-0 text-danger">-$120</h6>
+                                
+                                <!-- text-end -->
+                                <div class="col-md-2">
+                                    <?php
+                                        if ($transRows['amount'] >= 0) {
+                                            echo '<h6 class="mb-0 text-success">+$' . number_format($transRows['amount']) . '</h6>';
+                                        } else {
+                                            echo '<h6 class="mb-0 text-danger">-$' . number_format(abs($transRows['amount'])) . '</h6>';
+                                        }
+                                    ?>
                                 </div>
                             </div>
                         </div>
-
+                        <!-- 
                         <div class="expense-item transport">
                             <div class="row align-items-center">
                                 <div class="col-md-2">
@@ -311,8 +331,11 @@
                                 </div>
                             </div>
                         </div>
+                         -->
+                    <?php
+                        }
+                    ?>
                     </div>
-                    
                     <div class="text-center mt-3">
                         <button class="btn btn-outline-primary">查看更多</button>
                     </div>
@@ -322,7 +345,7 @@
     </div>
 </div>
 <?php
-echo "<pre>";print_r($dailyCostByCategory);
+// echo "<pre>";print_r($dailyCostByCategory);
 ?>
 <script>
     const spend_rows = <?php echo json_encode($dailyCosts)?>;
@@ -650,8 +673,8 @@ echo "<pre>";print_r($dailyCostByCategory);
     // 篩選功能
     function applyFilters() {
         const startDate = document.getElementById('startDate').value;
-        const endDate = document.getElementById('endDate').value;
-        const category = document.getElementById('categoryFilter').value;
+        const endDate   = document.getElementById('endDate').value;
+        const category  = document.getElementById('categoryFilter').value;
         
         // 模擬篩選效果
         console.log('篩選條件:', { startDate, endDate, category });

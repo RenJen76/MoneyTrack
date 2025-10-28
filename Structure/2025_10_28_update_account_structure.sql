@@ -1,0 +1,1 @@
+ALTER TABLE `category_list` ADD `icon_name` VARCHAR(50) NULL DEFAULT NULL AFTER `category_id`;

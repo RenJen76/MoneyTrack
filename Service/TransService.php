@@ -154,6 +154,11 @@
             return $categoryArray;
         }
 
+        /**
+         * 取得本月花費金額
+         *
+         * @return int
+         */
         public function getThisMonthSpend()
         {
             $amounts   = 0;
@@ -163,7 +168,30 @@
             $asOfMonth = date('Y-m-t', strtotime($today));
             $trans  = $this->trans->transBetweenDays($fromMonth, $asOfMonth);
             foreach ($trans as $record) {
-                $amounts += $record['amount'];
+                if ($record['amount'] <= 0) {
+                    $amounts += $record['amount'];
+                }
+            }
+            return $amounts;
+        }
+
+        /**
+         * 取得本月收入金額
+         *
+         * @return int
+         */
+        public function getThisMonthIncome()
+        {
+            $amounts   = 0;
+            $today     = date('Y-m-d');
+            $today     = '2025-06-01';
+            $fromMonth = date('Y-m-01', strtotime($today));
+            $asOfMonth = date('Y-m-t', strtotime($today));
+            $trans  = $this->trans->transBetweenDays($fromMonth, $asOfMonth);
+            foreach ($trans as $record) {
+                if ($record['amount'] > 0) {
+                    $amounts += $record['amount'];
+                }
             }
             return $amounts;
         }
@@ -208,6 +236,29 @@
                 }
             }
             return $records;
+        }
+
+        /**
+         * 取得最新交易紀錄
+         *
+         * @return array
+         */
+        public function getLastTransRecord()
+        {
+            $TransRecord= [];
+            $Records    = $this->trans->getLastTransRecord();
+
+            foreach ($Records as $rows) {
+                $transData = $this->trans->getTrans($rows['trans_no']);
+                if ($transData) {
+                    if (!$transData[0]['icon_name']) {
+                        $transData[0]['icon_name'] = 'fa-dollar-sign';
+                    }
+                    $TransRecord[] = $transData[0];
+                }
+            }
+
+            return $TransRecord;
         }
     }
 ?>

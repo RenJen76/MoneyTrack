@@ -97,7 +97,9 @@
                     ?>
                         <li class="list-group-item rounded">
                             <span class="category-item" data-target="#sub<?php echo $vendor['vendor_id']?>">
-                                <span class="toggle-icon">➕</span> <?php echo $vendor['vendor_name']?>
+                                <span class="toggle-icon">
+                                    <i class="bi bi-house-door"></i></i>
+                                </span> <?php echo $vendor['vendor_name']?>
                             </span>
                         </li>
 

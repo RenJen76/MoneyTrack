@@ -84,10 +84,11 @@
                         break;
                     default:
                         $totalSpend         = $transService->getTotalSpend();
-                        // $mostCostDay    = $trans->mostCostDay();
+                        $lastTransRecord    = $transService->getLastTransRecord();
                         // $mostCostTrans  = $trans->transOnDate($mostCostDay['spend_at']);
                         $categoryList       = $transService->getCateList();
-                        $thisMonthsSpend    = $transService->getThisMonthSpend();
+                        $thisMonthSpend     = $transService->getThisMonthSpend();
+                        $thisMonthIncome    = $transService->getThisMonthIncome();
                         // $costVendorRank = $trans->costVendorRank();
                         $dailyCosts         = $transService->getDailyCostsInRange('2025-06-01', '2025-06-29');
                         $dailyCostByCategory= $transService->getDailyCostByCategory('2025-06-01', '2025-06-29');
@@ -97,6 +98,8 @@
                 }
             ?>
         </div>
+
+        <footer class="text-center py-3 fixed-bottom mt-4"></footer>
     </div>
 </body>
 </html>
