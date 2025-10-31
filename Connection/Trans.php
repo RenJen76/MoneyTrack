@@ -59,12 +59,15 @@
                 return $this->query("
                     select 
                         list.subcategory_id, category_name, amount, cate.category_id, spend_at, 
-                        vendor.vendor_name, description, subcate.subcategory_name
+                        vendor.vendor_name, description, subcate.subcategory_name,
+                        account.account_name, account.account_id, vendor.vendor_id
                     from trans_list list
                     inner join subcategory_list subcate on list.subcategory_id = subcate.subcategory_id
                     inner join category_list cate on subcate.category_id = cate.category_id
                     inner join vendor_list vendor on list.vendor_id = vendor.vendor_id
+                    inner join account_list account on account.account_id = list.account_id
                     where list.spend_at between '$fromMonth' and '$asOfMonth'
+                    order by list.spend_at ASC
                 ");
             }
 
@@ -159,9 +162,10 @@
             if ($transId) {
                 return $this->query("
                     select 
-                        list.subcategory_id, category_name, amount, cate.category_id, spend_at, 
+                        list.subcategory_id, list.trans_no, category_name, amount, cate.category_id, spend_at, 
                         vendor.vendor_name, description, subcate.subcategory_name,
-                        account.account_name, account.account_id, cate.icon_name
+                        account.account_name, account.account_id, cate.icon_name,
+                        vendor.vendor_id
                     from trans_list list
                     inner join subcategory_list subcate on list.subcategory_id = subcate.subcategory_id
                     inner join category_list cate on subcate.category_id = cate.category_id

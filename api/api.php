@@ -119,8 +119,9 @@
             if ($transRecord) {
                 echo json_encode(['success' => true, 'data' => $transRecord]);
             }
+        break;
         default:
             echo json_encode(['success' => false, 'error' => '參數異常'], JSON_UNESCAPED_UNICODE);
-
+        break;
     }
 ?>

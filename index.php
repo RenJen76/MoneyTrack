@@ -83,6 +83,8 @@
                         require 'View/importFile.php';
                         break;
                     default:
+                        $Account            = new Account();
+                        $AccountList        = $Account->getAll();
                         $totalSpend         = $transService->getTotalSpend();
                         $lastTransRecord    = $transService->getLastTransRecord();
                         // $mostCostTrans  = $trans->transOnDate($mostCostDay['spend_at']);

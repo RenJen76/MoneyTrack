@@ -3,6 +3,14 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+<script src="assets/js/home.js?v=<?php echo md5_file('assets/js/home.js')?>"></script>
+<script>    
+    let tempRecord   = [];
+    const spend_rows = <?php echo json_encode($dailyCosts)?>;
+    const categorys  = <?php echo json_encode($categoryList)?>;
+    const dailyCostByCategory = <?php echo json_encode($dailyCostByCategory)?>;
+    const accountList = <?php echo json_encode($AccountList)?>;
+</script>
 <style>
     /* body {
         /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
@@ -126,7 +134,7 @@
         box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     } */
     
-    .form-control, .form-select {
+    /* .form-control, .form-select {
         border-radius: 10px;
         border: 1px solid rgba(255,255,255,0.3);
         background: rgba(255,255,255,0.9);
@@ -135,34 +143,28 @@
     .form-control:focus, .form-select:focus {
         border-color: #667eea;
         box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    } */
+
+    .badge-eq {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: inherit;   /* 繼承外層字級 */
+        line-height: 1;       /* 固定行高，避免文字跑版 */
+        height: 1.25em;       /* 可依需要微調 (fs-5 大小約 1.25em) */
+        padding: 0 .6rem;     /* 左右內距 */
+    }
+    .cancel-btn:hover {
+        color: #cececeff;
+        cursor: pointer;
+    }
+    .save-btn:hover {
+        color: #cececeff;
+        cursor: pointer;
     }
 </style>
 
 <div class="container mt-4 pt-4 shadow-lg rounded-4 mx-1 mx-md-0 border border-2 light-gray-bg">
-    <!-- 統計摘要 -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="stat-card">
-                <i class="fas fa-coins fa-2x mb-2"></i>
-                <div class="stat-value">$<?php echo number_format($thisMonthIncome)?></div>
-                <div>本月收入</div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="stat-card expense">
-                <i class="fas fa-credit-card fa-2x mb-2"></i>
-                <div class="stat-value">$<?php echo number_format($thisMonthSpend)?></div>
-                <div>本月支出</div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="stat-card budget">
-                <i class="fas fa-piggy-bank fa-2x mb-2"></i>
-                <div class="stat-value">$<?php echo number_format($thisMonthIncome+$thisMonthSpend)?></div>
-                <div>本月結餘</div>
-            </div>
-        </div>
-    </div>
 
     <!-- 篩選器 -->
     <div class="filter-section bg-secondary bg-gradient">
@@ -196,6 +198,31 @@
                 <button class="btn btn-dark d-block w-100" onclick="applyFilters()">
                     <i class="fas fa-search me-2"></i>篩選
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 統計摘要 -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <i class="fas fa-coins fa-2x mb-2"></i>
+                <div class="stat-value">$<?php echo number_format($thisMonthIncome)?></div>
+                <div>收入</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card expense">
+                <i class="fas fa-credit-card fa-2x mb-2"></i>
+                <div class="stat-value">$<?php echo number_format($thisMonthSpend)?></div>
+                <div>支出</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card budget">
+                <i class="fas fa-piggy-bank fa-2x mb-2"></i>
+                <div class="stat-value">$<?php echo number_format($thisMonthIncome+$thisMonthSpend)?></div>
+                <div>結餘</div>
             </div>
         </div>
     </div>
@@ -238,16 +265,45 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-list me-2 text-primary"></i>最新消費明細
+                        <i class="fas fa-list me-2 text-primary"></i>消費明細
                     </h5>
                     <span class="badge bg-primary">共 <?php echo count($lastTransRecord)?> 筆</span>
                 </div>
                 <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <div class="btn-toolbar" role="toolbar" aria-label="排序工具">
+                                <div class="btn-group btn-group-sm me-2" role="group" aria-label="金額排序">
+                                    <button class="btn btn-outline-secondary" id="sortAmountDesc">金額：由大到小</button>
+                                    <button class="btn btn-outline-secondary" id="sortAmountAsc">金額：由小到大</button>
+                                </div>
+
+                                <div class="btn-group btn-group-sm me-2" role="group" aria-label="日期排序">
+                                    <button class="btn btn-outline-secondary" id="sortDateDesc">日期：最新</button>
+                                    <button class="btn btn-outline-secondary" id="sortDateAsc">日期：最舊</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="input-group border rounded" style="min-width:260px; max-width:40%;">
+                            <input type="text" id="expenseSearch" class="form-control form-control-sm" placeholder="搜尋描述 / 商家">
+                            <button class="btn btn-sm btn-outline-secondary" id="clearSearch" type="button">清除</button>
+                        </div>
+                    </div>
                     <div id="expenseList">
                     <?php
+
                         foreach ($lastTransRecord as $transRows) {
                     ?>
-                        <div class="expense-item borderline">
+                        <div class="expense-item borderline"
+                            data-amount="<?php echo $transRows['amount'];?>" 
+                            data-date="<?php echo $transRows['spend_at'];?>" 
+                            data-vendor="<?php echo $transRows['vendor_name'];?>"
+                            data-subcategory_id="<?php echo $transRows['subcategory_id'];?>"
+                            data-vendor_id="<?php echo $transRows['vendor_id'];?>"
+                            data-account_id="<?php echo $transRows['account_id'];?>"
+                            data-trans_no="<?php echo $transRows['trans_no'];?>"
+                        >
                             <div class="row align-items-center">
                                 <div class="col-md-1">
                                     <i class="fas <?php echo $transRows['icon_name']?> fa-2x text-secondary"></i>
@@ -267,71 +323,23 @@
                                 
                                 <!-- text-end -->
                                 <div class="col-md-2">
-                                    <?php
-                                        if ($transRows['amount'] >= 0) {
-                                            echo '<h6 class="mb-0 text-success">+$' . number_format($transRows['amount']) . '</h6>';
-                                        } else {
-                                            echo '<h6 class="mb-0 text-danger">-$' . number_format(abs($transRows['amount'])) . '</h6>';
-                                        }
-                                    ?>
+                                    <div class="d-flex align-items-center">
+                                        <div class="flex-grow-1 text-center">
+                                            <?php
+                                                if ($transRows['amount'] >= 0) {
+                                                    echo '<h6 class="mb-0 text-success">+$' . number_format($transRows['amount']) . '</h6>';
+                                                } else {
+                                                    echo '<h6 class="mb-0 text-danger">-$' . number_format(abs($transRows['amount'])) . '</h6>';
+                                                }
+                                            ?>
+                                        </div>
+                                        <div class="ms-2 d-flex align-items-center">
+                                            <i class="fa-regular fa-pen-to-square" style="cursor:pointer;"></i>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <!-- 
-                        <div class="expense-item transport">
-                            <div class="row align-items-center">
-                                <div class="col-md-2">
-                                    <i class="fas fa-bus fa-2x text-success"></i>
-                                </div>
-                                <div class="col-md-4">
-                                    <h6 class="mb-1">公車費用</h6>
-                                    <small class="text-muted">08:45</small>
-                                </div>
-                                <div class="col-md-3">
-                                    <span class="badge bg-success">交通</span>
-                                </div>
-                                <div class="col-md-3 text-end">
-                                    <h6 class="mb-0 text-danger">-$30</h6>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="expense-item entertainment">
-                            <div class="row align-items-center">
-                                <div class="col-md-2">
-                                    <i class="fas fa-film fa-2x text-danger"></i>
-                                </div>
-                                <div class="col-md-4">
-                                    <h6 class="mb-1">電影票</h6>
-                                    <small class="text-muted">19:00</small>
-                                </div>
-                                <div class="col-md-3">
-                                    <span class="badge bg-danger">娛樂</span>
-                                </div>
-                                <div class="col-md-3 text-end">
-                                    <h6 class="mb-0 text-danger">-$320</h6>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="expense-item shopping">
-                            <div class="row align-items-center">
-                                <div class="col-md-2">
-                                    <i class="fas fa-shopping-bag fa-2x text-purple"></i>
-                                </div>
-                                <div class="col-md-4">
-                                    <h6 class="mb-1">日用品購買</h6>
-                                    <small class="text-muted">16:20</small>
-                                </div>
-                                <div class="col-md-3">
-                                    <span class="badge bg-purple">購物</span>
-                                </div>
-                                <div class="col-md-3 text-end">
-                                    <h6 class="mb-0 text-danger">-$450</h6>
-                                </div>
-                            </div>
-                        </div>
-                         -->
                     <?php
                         }
                     ?>
@@ -344,485 +352,18 @@
         </div>
     </div>
 </div>
-<?php
-// echo "<pre>";print_r($dailyCostByCategory);
-?>
-<script>
-    const spend_rows = <?php echo json_encode($dailyCosts)?>;
-    const categorys  = <?php echo json_encode($categoryList)?>;
-    const dailyCostByCategory = <?php echo json_encode($dailyCostByCategory)?>;
-    const varColors  = ["#ff6384", "#36a2eb", "#4caf50", "#ffce56", "#9966ff"];
-
-    // 產生每個 varColor 的五階漸層色（由深到淺）
-    function generateColorShades(hex, steps = 5) {
-        // 將 hex 轉為 rgb
-        let r = parseInt(hex.substr(1,2),16);
-        let g = parseInt(hex.substr(3,2),16);
-        let b = parseInt(hex.substr(5,2),16);
-        let shades = [];
-        for(let i=0; i<steps; i++) {
-            // 由 1 到 0.4（深）線性插值到 1（原色），再到 1.6（亮）
-            let factor = 1 - (i * 0.15); // 1, 0.85, 0.7, 0.55, 0.4
-            let nr = Math.round(r * factor + 255 * (1 - factor));
-            let ng = Math.round(g * factor + 255 * (1 - factor));
-            let nb = Math.round(b * factor + 255 * (1 - factor));
-            shades.push(`rgb(${nr},${ng},${nb})`);
-        }
-        return shades;
-    }
-
-    function getMaincategory(MainCategory, subCategory) 
-    {
-        for (const mainCategory of Object.keys(MainCategory)) {
-            if (Object.keys(MainCategory[mainCategory]).includes(subCategory)) {
-                return mainCategory;
-            }
-        }
-
-        return '';
-    }
-
-    // 生成所有 varColors 的漸層色陣列
-    const varColorShades = varColors.map(color => generateColorShades(color, 5));
-    // varColorShades[0] 是 varColors[0] 的五階漸層色，由深到淺
-
-    // 詳細分類數據
-    const detailedCategoryData = {};
-    const categoryRank = {};
-    let datasets = [];
-    let categoryDataHistory = [];
-
-    Object.values(spend_rows.category).forEach(category_name => {
-        datasets.push({
-            label: category_name,
-            data: Object.values(spend_rows.record).map(item => Math.abs(item[category_name] || 0)),
-            backgroundColor: varColors[datasets.length % varColors.length],
-            stack: 'Stack 0'
-        });
-    });
-
-    Object.keys(dailyCostByCategory).forEach((category_name, row) => {
-        detailedCategoryData[category_name] = {
-            'labels': Object.keys(dailyCostByCategory[category_name]),
-            'datasets': [{
-                data: Object.values(dailyCostByCategory[category_name]),
-                backgroundColor: varColorShades[row]
-            }]
-        };
-        categoryRank[category_name] = {
-            'amounts' : Math.abs(Object.values(dailyCostByCategory[category_name]).reduce((sum, item) => sum + item, 0))
-        };
-    });
-
-    categoryTotalCosts = Object.values(categoryRank).reduce((sum, item) => sum + item.amounts, 0);
-    Object.keys(categoryRank).forEach(categoryName => {
-        categoryRank[categoryName].percent = ((categoryRank[categoryName]['amounts'] / categoryTotalCosts) * 100).toFixed(1);
-    })
-
-    console.log(dailyCostByCategory)
-    console.log(categoryRank);
-    // 註冊縮放插件
-    Chart.register(ChartZoom);
-    
-    // 消費趨勢圖表
-    const trendCtx = document.getElementById('trendChart').getContext('2d');
-    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
-
-    const trendChart = new Chart(trendCtx, {
-        type: 'bar',
-        data: {
-            labels: Object.keys(spend_rows.record),
-            datasets: datasets
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {
-                intersect: false,
-                mode: 'index'
-            },
-            plugins: {
-                legend: {
-                    position: 'top',
-                },
-                tooltip: {
-                    filter: function(tooltipItem) {
-                        return tooltipItem.parsed.y !== 0;
-                    },
-                    // 自定義 tooltip 的顯示方式
-                    callbacks: {
-                        title: function(tooltipItems) {
-                            console.log(tooltipItems)
-                            // 只有當有非零值時才顯示標題
-                            const hasNonZero = tooltipItems.some(item => item.parsed.y !== 0);
-                            const totalCosts = tooltipItems.reduce((sum, item) => sum + item.parsed.y, 0);
-                            return hasNonZero ? tooltipItems[0].label + ': $' + totalCosts.toLocaleString() : '';
-                        },
-                        label: function(context) {
-                            console.log(context)
-                            if (context.parsed.y === 0) {
-                                return null;
-                            }
-                            return context.dataset.label + ': $' + context.parsed.y;
-                        }
-                    }
-                },
-                title: {
-                    display: true,
-                    text: '每日收支趨勢 (可縮放和拖拽)',
-                    font: {
-                        size: 14
-                    }
-                },
-                zoom: {
-                    pan: {
-                        enabled: true,
-                        mode: 'x',
-                        scaleMode: 'x'
-                    },
-                    zoom: {
-                        wheel: {
-                            enabled: true,
-                            speed: 0.1
-                        },
-                        pinch: {
-                            enabled: true
-                        },
-                        mode: 'x',
-                        scaleMode: 'x'
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    title: {
-                        display: true,
-                        text: '日期'
-                    }
-                },
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: '金額 (NT$)'
-                    }
-                }
-            },
-            // 新增 onClick callback
-            onClick: function(event, elements) {
-                if (elements.length > 0) {
-                    const clickedIndex = elements[0].index;
-                    const clickedDate = this.data.labels[clickedIndex];
-                    showDayDetail(clickedDate); // 呼叫你自訂的函式
-                }
-            },
-            onHover: (event, activeElements) => {
-                event.native.target.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
-            }
-        }
-    });
-
-    function showDayDetail(date) 
-    {
-        fetch(`api/api.php`, {
-            method: 'POST',
-            body: JSON.stringify({action: 'getDailyCostByDate', date: date }),
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data && data.length > 0) {
-                let detailHtml = `<h5>${date} 的消費明細</h5>`;
-                detailHtml += '<ul class="list-group">';
-                data.forEach(item => {
-                    detailHtml += `<li class="list-group-item d-flex justify-content-between align-items-center">
-                        <span>${item.category} - ${item.description}</span>
-                        <span class="badge bg-primary rounded-pill">$${item.amount.toLocaleString()}</span>
-                    </li>`;
-                });
-                detailHtml += '</ul>';
-                
-                // 顯示在一個模態框或其他地方
-                document.getElementById('expenseDetailModalBody').innerHTML = detailHtml;
-                $('#expenseDetailModal').modal('show');
-            } else {
-                alert('沒有該日期的消費記錄。');
-            }
-        })
-        .catch(error => {
-            console.error('獲取消費明細時出錯:', error);
-            alert('無法獲取消費明細，請稍後再試。');
-        }); 
-    }
-
-    const categoryChart = new Chart(categoryCtx, {
-        type: 'doughnut',
-        data: {
-            labels: Object.keys(dailyCostByCategory),
-            datasets: [{
-                data: Object.values(categoryRank).map(item => item.percent),
-                backgroundColor: [
-                    '#ff9800',
-                    '#4caf50',
-                    '#e91e63',
-                    '#9c27b0',
-                    '#607d8b'
-                ],
-                borderWidth: 2,
-                borderColor: '#fff',
-                hoverBorderWidth: 3
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                },
-                title: {
-                    display: true,
-                    text: '支出分類分佈 (點擊查看詳細)',
-                    font: {
-                        size: 14
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            console.log(context)
-                            let percent, labelAmounts, mainCategory;
-                            let label = context.label || '';
-                            let isMainCategory = (Object.keys(dailyCostByCategory).indexOf(label) !== -1);
-                            if (isMainCategory) {
-                                labelAmounts = categoryRank[label]['amounts'];
-                                percent      = context.formattedValue;
-                            } else {
-                                mainCategory = getMaincategory(dailyCostByCategory, label);
-                                labelAmounts = Math.abs(context.parsed);
-                                percent      = (labelAmounts / categoryRank[mainCategory]['amounts'] * 100).toFixed(1);
-                            }
-                            return `${label}: ${percent}% (${(labelAmounts).toLocaleString()}$)`;
-                        }
-                    }
-                }
-            },
-            onClick: function(event, elements) {
-                if (elements.length > 0) {
-                    const clickedIndex = elements[0].index;
-                    const clickedLabel = this.data.labels[clickedIndex];
-                    
-                    if (detailedCategoryData[clickedLabel]) {
-                        // 儲存當前狀態
-                        categoryDataHistory.push({
-                            data: JSON.parse(JSON.stringify(this.data)),
-                            title: this.options.plugins.title.text
-                        });
-                        
-                        // 切換到詳細視圖
-                        this.data = detailedCategoryData[clickedLabel];
-                        this.options.plugins.title.text = clickedLabel + ' - 詳細分項';
-                        this.update();
-                        
-                        // 顯示返回按鈕
-                        showCategoryBackButton();
-                    }
-                }
-            },
-            onHover: (event, activeElements) => {
-                event.native.target.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
-            }
-        }
-    });
-
-    function showCategoryBackButton() {
-        let backBtn = document.getElementById('categoryBackBtn');
-        if (!backBtn) {
-            backBtn = document.createElement('button');
-            backBtn.id = 'categoryBackBtn';
-            backBtn.className = 'btn btn-sm btn-outline-secondary mt-2';
-            backBtn.innerHTML = '<i class="fas fa-arrow-left"></i> 返回';
-            backBtn.onclick = goBackToMainCategory;
-            document.querySelector('#categoryChart').parentNode.appendChild(backBtn);
-        }
-        backBtn.style.display = 'inline-block';
-    }
-
-    function goBackToMainCategory() {
-        if (categoryDataHistory.length > 0) {
-            const previousState = categoryDataHistory.pop();
-            categoryChart.data = previousState.data;
-            categoryChart.options.plugins.title.text = previousState.title;
-            categoryChart.update();
-            
-            document.getElementById('categoryBackBtn').style.display = 'none';
-        }
-    }
-
-    // 添加重置縮放按鈕
-    const resetZoomBtn = document.createElement('button');
-    resetZoomBtn.className = 'btn btn-sm btn-outline-secondary';
-    resetZoomBtn.innerHTML = '<i class="fas fa-undo"></i> 重置縮放';
-    resetZoomBtn.onclick = () => {
-        trendChart.resetZoom();
-    };
-    document.querySelector('#trendChart').parentNode.appendChild(resetZoomBtn);
-
-    // 篩選功能
-    function applyFilters() {
-        const startDate = document.getElementById('startDate').value;
-        const endDate   = document.getElementById('endDate').value;
-        const category  = document.getElementById('categoryFilter').value;
-        
-        // 模擬篩選效果
-        console.log('篩選條件:', { startDate, endDate, category });
-        
-        // 這裡可以加入實際的篩選邏輯
-        updateCharts(startDate, endDate, category);
-        filterExpenseList(category);
-    }
-
-    // 篩選功能
-    function applyFilters() {
-        const startDate = document.getElementById('startDate').value;
-        const endDate = document.getElementById('endDate').value;
-        const category = document.getElementById('categoryFilter').value;
-        
-        // 模擬篩選效果
-        console.log('篩選條件:', { startDate, endDate, category });
-        
-        // 這裡可以加入實際的篩選邏輯
-        updateCharts(startDate, endDate, category);
-        filterExpenseList(category);
-    }
-
-    function updateCharts(startDate, endDate, category) {
-        // 模擬更新圖表數據
-        const newData = generateRandomData();
-        trendChart.data.datasets[0].data = newData.trend;
-        trendChart.update();
-        
-        const newCategoryData = generateRandomCategoryData();
-        categoryChart.data.datasets[0].data = newCategoryData;
-        categoryChart.update();
-    }
-
-    function filterExpenseList(category) {
-        const expenseItems = document.querySelectorAll('.expense-item');
-        expenseItems.forEach(item => {
-            if (category === '' || item.classList.contains(category)) {
-                item.style.display = 'block';
-            } else {
-                item.style.display = 'none';
-            }
-        });
-    }
-
-    function generateRandomData() {
-        return {
-            trend: Array.from({length: 7}, () => Math.floor(Math.random() * 800) + 100)
-        };
-    }
-
-    function generateRandomCategoryData() {
-        return Array.from({length: 5}, () => Math.floor(Math.random() * 40) + 10);
-    }
-
-
-    // 篩選功能
-    function applyFilters() {
-        const startDate = document.getElementById('startDate').value;
-        const endDate = document.getElementById('endDate').value;
-        const category = document.getElementById('categoryFilter').value;
-        
-        // 模擬篩選效果
-        console.log('篩選條件:', { startDate, endDate, category });
-        
-        // 這裡可以加入實際的篩選邏輯
-        updateCharts(startDate, endDate, category);
-        filterExpenseList(category);
-    }
-
-    function updateCharts(startDate, endDate, category) {
-        // 模擬更新圖表數據
-        const newData = generateRandomData();
-        trendChart.data.datasets[0].data = newData.trend;
-        trendChart.data.datasets[1].data = newData.income;
-        trendChart.update();
-        
-        const newCategoryData = generateRandomCategoryData();
-        categoryChart.data.datasets[0].data = newCategoryData;
-        categoryChart.update();
-        
-        // 重置縮放
-        trendChart.resetZoom();
-    }
-
-    function filterExpenseList(category) {
-        const expenseItems = document.querySelectorAll('.expense-item');
-        expenseItems.forEach(item => {
-            if (category === '' || item.classList.contains(category)) {
-                item.style.display = 'block';
-            } else {
-                item.style.display = 'none';
-            }
-        });
-    }
-
-    function generateRandomData() {
-        return {
-            trend: Array.from({length: 15}, () => Math.floor(Math.random() * 800) + 100),
-            income: Array.from({length: 15}, (_, i) => i % 2 === 0 ? Math.floor(Math.random() * 1000) + 800 : 0)
-        };
-    }
-
-    function generateRandomCategoryData() {
-        return Array.from({length: 5}, () => Math.floor(Math.random() * 40) + 10);
-    }
-
-    // 添加動畫效果
-    window.addEventListener('load', function() {
-        const cards = document.querySelectorAll('.card');
-        cards.forEach((card, index) => {
-            setTimeout(() => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
-                card.style.transition = 'all 0.5s ease';
-                setTimeout(() => {
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }, 100);
-            }, index * 100);
-        });
-    });
-
-    // 添加動畫效果
-    window.addEventListener('load', function() {
-        const cards = document.querySelectorAll('.card');
-        cards.forEach((card, index) => {
-            setTimeout(() => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
-                card.style.transition = 'all 0.5s ease';
-                setTimeout(() => {
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }, 100);
-            }, index * 100);
-        });
-    });
-
-    // 實時更新統計數據
-    setInterval(function() {
-        const statValues = document.querySelectorAll('.stat-value');
-        statValues.forEach(value => {
-            const currentValue = parseInt(value.textContent.replace('$', '').replace(',', ''));
-            const newValue = currentValue + Math.floor(Math.random() * 100) - 50;
-            value.textContent = '$' + newValue.toLocaleString();
-        });
-    }, 30000); // 每30秒更新一次
-
-
-</script>
+<!-- Modal -->
+<div class="modal fade" id="expenseDetailModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div id="expenseDetailModalBody" class="modal-body"></div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+        </div>
+    </div>
+</div>
