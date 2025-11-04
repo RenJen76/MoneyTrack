@@ -108,7 +108,23 @@
                 echo json_encode(['success' => false, 'error' => '建立失敗'], JSON_UNESCAPED_UNICODE);
             }
         break;
+        case 'updateSpend':
+            $trans  = new Trans;            
+            $res    = $trans->updateTrans($postData['trans_id'], [
+                'accountId'     => $postData['account_id'],
+                'spendAt'       => date('Y-m-d H:i:s', strtotime($postData['spend_at'])),
+                // 'vendorId'      => $vendor_id,
+                'subcategoryId' => $postData['category_id'],
+                'amount'        => $postData['amount'],
+                'description'   => $postData['description']
+            ]);
 
+            if ($trans) {     
+                echo json_encode(['success' => true]);
+            } else {
+                echo json_encode(['success' => false, 'error' => '建立失敗'], JSON_UNESCAPED_UNICODE);
+            }
+        break;
         case 'getDailyCostByDate':
             if (!isset($postData['date']) || empty($postData['date'])) {
                 echo json_encode(['success' => false, 'error' => '日期不可為空'], JSON_UNESCAPED_UNICODE);

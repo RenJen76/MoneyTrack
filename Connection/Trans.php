@@ -146,6 +146,20 @@
             return 0;
         }
 
+        public function updateTrans($transId, $data)
+        {
+            $rs = $this->update([
+                'account_id'    => $data['accountId'],
+                'spend_at'      => $data['spendAt'],
+                // 'vendor_id' => $data['vendorId'],
+                'subcategory_id'=> $data['subcategoryId'],
+                'amount'        => $data['amount'],
+                'description'   => $data['description']
+            ], array('trans_no' => $transId), 1);
+
+            return $rs;
+        }
+
         public function getTransByHashKey($HashKey)
         {
             return $this->query("select trans_no from trans_list where hash_key = '$HashKey'");

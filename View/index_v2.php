@@ -102,12 +102,30 @@
         margin-bottom: 1rem;
         background: rgba(255,255,255,0.8);
         border-radius: 0 10px 10px 0;
-        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .expense-item::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -5px;
+        width: calc(100% + 5px);
+        height: 100%;
+        background: inherit;
+        border-radius: inherit;
+        transition: transform 0.3s ease;
+        pointer-events: none;
+        z-index: -1;
+    }
+    
+    .expense-item:hover::after {
+        transform: translateX(5px);
     }
     
     .expense-item:hover {
-        transform: translateX(5px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
     }
     
     .expense-item.borderline { border-left-color: #9bc5e9; }
@@ -292,7 +310,6 @@
                     </div>
                     <div id="expenseList">
                     <?php
-
                         foreach ($lastTransRecord as $transRows) {
                     ?>
                         <div class="expense-item borderline"

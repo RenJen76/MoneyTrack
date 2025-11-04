@@ -32,9 +32,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // 儲存變更
         if (e.target.classList.contains('save-btn') || e.target.closest('.save-btn')) {
             const formData = {
-                id: expenseItem.dataset.id,
+                trans_id: expenseItem.dataset.trans_no,
+                action: 'updateSpend',
                 description: expenseItem.querySelector('[name="description"]').value,
-                vendor: expenseItem.querySelector('[name="vendor"]').value,
+                // vendor: expenseItem.querySelector('[name="vendor"]').value,
                 amount: parseFloat(expenseItem.querySelector('[name="amount"]').value),
                 spend_at: expenseItem.querySelector('[name="spend_at"]').value,
                 account_id: expenseItem.querySelector('[name="account"]').value,
@@ -42,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
             };
 
             try {
-                const response = await fetch('api/edit.php', {
+                const response = await fetch('api/api.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData)
@@ -50,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 const result = await response.json();
                 if (result.success) {
-                    location.reload(); // 或使用 AJAX 更新當前行
+                    location.reload(); // 重新載入頁面以顯示更新後的數據
                 } else {
                     alert('儲存失敗: ' + result.message);
                 }

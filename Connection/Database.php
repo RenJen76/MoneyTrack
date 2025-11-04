@@ -79,6 +79,51 @@
 
             return null;
         }
+        
+        /**
+         * update function
+         *
+         * @param array $updateFields
+         * @param array $condition
+         * @param int $limit
+         * @return bool
+         */
+        public function update($updateFields = array(), $condition = array(), $limit = 0)
+        {
+            if ($this->tableName && count($updateFields)>0) {
+
+                $whereClause  = $this->buildConditionClause($condition);
+                $updateClause = $this->buildConditionClause($updateFields);
+
+                try {
+
+                    $sql    = "update `$this->tableName` set ";
+                    $sql   .= implode(" , ", $updateClause);
+                    if (count($whereClause)>0) {
+                        $sql   .= " where " . implode(" AND ", $whereClause);
+                        $executeFields = array_merge($updateFields, $condition);
+                    } else {
+                        $sql   .= " where 1 ";
+                        $executeFields = $condition;
+                    }
+                    
+                    if (intval($limit) > 0) {
+                        $sql   .= " limit $limit";
+                    }
+                    
+                    $statement  = $this->connection->prepare($sql);
+                    $res        = $statement->execute($executeFields);
+                    return $res > 0 ? true : false;
+
+                } catch (Exception $e) {
+
+                    die("PDO_ERROR: " . $e->getMessage() . " at class: " . get_class($this) . " Stack trace:" . $e->getTraceAsString() . " execute sql:" . $sql);
+   
+                }
+            }
+
+            return false;
+        }
 
         public function buildFields($fields = array())
         {
@@ -91,6 +136,17 @@
             }
 
             return null;
+        }
+
+        public function buildConditionClause($fields = array())
+        {
+            $where = [];
+            if (count($fields)>0) {
+                foreach (array_keys($fields) as $field) {
+                    $where[] = "`$field`=:$field";
+                }
+            }
+            return $where;
         }
 
         public function lastInsertId()
