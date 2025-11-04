@@ -58,9 +58,12 @@
 
                 return $this->query("
                     select 
-                        list.subcategory_id, category_name, amount, cate.category_id, spend_at, 
-                        vendor.vendor_name, description, subcate.subcategory_name,
-                        account.account_name, account.account_id, vendor.vendor_id
+                        list.subcategory_id, list.trans_no, list.amount, list.spend_at, list.description,
+                        cate.category_name, cate.category_id, cate.icon_name, 
+                        vendor.vendor_name, 
+                        subcate.subcategory_name,
+                        account.account_name, account.account_id, 
+                        vendor.vendor_id
                     from trans_list list
                     inner join subcategory_list subcate on list.subcategory_id = subcate.subcategory_id
                     inner join category_list cate on subcate.category_id = cate.category_id
@@ -198,7 +201,7 @@
          */
         public function getLastTransRecord()
         {
-            return $this->query("select trans_no from trans_list ORDER BY `trans_no` DESC LIMIT 100");
+            return $this->query("select trans_no, spend_at from trans_list ORDER BY `trans_no` DESC LIMIT 1");
         }
 
     }

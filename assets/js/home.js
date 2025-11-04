@@ -1,5 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
     const expenseList = document.getElementById('expenseList');
+
+    document.getElementById('startDate').value = fromDate;
+    document.getElementById('endDate').value   = toDate;
     
     // 點擊編輯按鈕
     expenseList.addEventListener('click', function(e) {
@@ -438,6 +441,7 @@ function showDayDetail(date)
         if (dailyRecords && dailyRecords.data.length > 0) {
             let detailHtml = '<ul class="list-group">';
             dailyRecords.data.forEach(item => {
+                // badgeColor   = varColors[datasets.length % varColors.length];
                 amountsColor = item.amount > 0 ? 'bg-success' : 'bg-danger'; 
                 dailyAmount  = dailyAmount + item.amount;
                 detailHtml  += `<li class="list-group-item d-flex justify-content-between align-items-center">
@@ -579,7 +583,6 @@ $(function(){
     const sortSelect = document.getElementById('sortSelect');
     const searchInput = document.getElementById('expenseSearch');
     const clearBtn = document.getElementById('clearSearch');
-    const countInfo = document.getElementById('countInfo');
 
     function getItems() {
         return Array.from(listEl.querySelectorAll('.expense-item'));
@@ -613,24 +616,33 @@ $(function(){
     document.getElementById('sortDateDesc').addEventListener('click', () => {sortItems('date_desc'); });
     document.getElementById('sortDateAsc').addEventListener('click', () => {sortItems('date_asc'); });
 
-    function updateCount() {
-        const visible = getItems().filter(i => i.style.display !== 'none').length;
-        countInfo.textContent = `顯示 ${visible} 筆，總共 ${getItems().length} 筆`;
-    }
-
     function applySearch() {
+        let totalAmount  = 0;
+        let visibleCount = 0;
         const q = searchInput.value.trim().toLowerCase();
         getItems().forEach(item => {
+            console.log(item)
             const text = (item.textContent || '').toLowerCase();
-            item.style.display = q === '' ? 'block' : (text.indexOf(q) !== -1 ? 'block' : 'none');
+            let amount = parseInt(item.dataset.amount, 10);
+            if (q === '') {
+                item.style.display = 'block';
+                visibleCount++;
+                totalAmount+= amount;
+            } else {
+                if (text.indexOf(q) !== -1) {
+                    item.style.display = 'block';
+                    visibleCount++;
+                    totalAmount+= amount;
+                } else {
+                    item.style.display = 'none';
+                }
+            }
         });
+        document.getElementById('recordCountFields').innerHTML  = `共 ${visibleCount} 筆`;
+        document.getElementById('recordAmountFields').innerHTML = `總共 ${totalAmount} 元`;
         // updateCount();
     }
 
     searchInput.addEventListener('input', applySearch);
     clearBtn.addEventListener('click', () => { searchInput.value=''; applySearch(); });
-
-    // 初始排序（由大到小）
-    // sortItems(sortSelect.value);
-    // updateCount();
 });

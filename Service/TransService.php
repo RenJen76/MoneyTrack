@@ -239,26 +239,32 @@
         }
 
         /**
+         * 取得最新交易日期
+         *
+         * @return string $TransDate
+         */
+        public function getLastTransDate()
+        {
+            $Records = $this->trans->getLastTransRecord();
+            return $Records[0]['spend_at'] ?? date("Y-m-d");
+        }
+        
+        /**
          * 取得最新交易紀錄
          *
-         * @return array
+         * @param [string] $fromDate
+         * @param [string] $toDate
+         * @return void
          */
-        public function getLastTransRecord()
+        public function getTransRecord($fromDate, $toDate)
         {
-            $TransRecord= [];
-            $Records    = $this->trans->getLastTransRecord();
-
-            foreach ($Records as $rows) {
-                $transData = $this->trans->getTrans($rows['trans_no']);
-                if ($transData) {
-                    if (!$transData[0]['icon_name']) {
-                        $transData[0]['icon_name'] = 'fa-dollar-sign';
-                    }
-                    $TransRecord[] = $transData[0];
+            $Records    = $this->trans->transBetweenDays($fromDate, $toDate);
+            foreach ($Records as $rowIndex => $row) {
+                if (!$row['icon_name']) {
+                    $Records[$rowIndex]['icon_name'] = 'fa-dollar-sign';
                 }
             }
-
-            return $TransRecord;
+            return $Records;
         }
     }
 ?>

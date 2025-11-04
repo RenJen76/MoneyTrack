@@ -1,0 +1,168 @@
+/* body {
+    /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+    /* min-height: 100vh; */
+    /* font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; */
+/* } */
+
+.bg-info {
+    background-color: rgb(86 194 215) !important;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    backdrop-filter: blur(10px);
+    background: rgba(255,255,255,0.95);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+}
+
+/* .navbar {
+    background: rgba(255,255,255,0.1) !important;
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    color: white !important;
+} */
+
+.stat-card {
+    text-align: center;
+    padding: 1.5rem;
+    background: linear-gradient(45deg, #4CAF50, #45a049);
+    color: white;
+    border-radius: 15px;
+    margin-bottom: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+}
+
+.stat-card:hover::before {
+    transform: translateX(100%);
+}
+
+.stat-card.expense {
+    background: linear-gradient(45deg, #f44336, #d32f2f);
+}
+
+.stat-card.budget {
+    background: linear-gradient(45deg, #2196F3, #1976D2);
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0.5rem 0;
+}
+
+.filter-section {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.expense-item {
+    border-left: 4px solid #007bff;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: rgba(255,255,255,0.8);
+    border-radius: 0 10px 10px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.expense-item::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -5px;
+    width: calc(100% + 5px);
+    height: 100%;
+    background: inherit;
+    border-radius: inherit;
+    transition: transform 0.3s ease;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.expense-item:hover::after {
+    transform: translateX(5px);
+}
+
+.expense-item:hover {
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+}
+
+.expense-item.borderline { border-left-color: #9bc5e9; }
+/* .expense-item.transport { border-left-color: #4caf50; } */
+/* .expense-item.entertainment { border-left-color: #e91e63; } */
+/* .expense-item.shopping { border-left-color: #9c27b0; } */
+
+.chart-container {
+    position: relative;
+    height: 400px;
+    margin: 1rem 0;
+}
+
+/* .btn-primary {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    border: none;
+    border-radius: 25px;
+    padding: 0.5rem 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+} */
+
+/* .form-control, .form-select {
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.9);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+} */
+
+.badge-eq {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: inherit;   /* 繼承外層字級 */
+    line-height: 1;       /* 固定行高，避免文字跑版 */
+    height: 1.25em;       /* 可依需要微調 (fs-5 大小約 1.25em) */
+    padding: 0 .6rem;     /* 左右內距 */
+}
+.cancel-btn:hover {
+    color: #cececeff;
+    cursor: pointer;
+}
+.save-btn:hover {
+    color: #cececeff;
+    cursor: pointer;
+}

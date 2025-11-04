@@ -86,14 +86,17 @@
                         $Account            = new Account();
                         $AccountList        = $Account->getAll();
                         $totalSpend         = $transService->getTotalSpend();
-                        $lastTransRecord    = $transService->getLastTransRecord();
+                        $latestDate         = $transService->getLastTransDate();
+                        $fromDate           = date('Y-m-01', strtotime($latestDate));
+                        $toDate             = date('Y-m-t', strtotime($latestDate)); 
+                        $lastTransRecord    = $transService->getTransRecord($fromDate, $toDate);
                         // $mostCostTrans  = $trans->transOnDate($mostCostDay['spend_at']);
                         $categoryList       = $transService->getCateList();
                         $thisMonthSpend     = $transService->getThisMonthSpend();
                         $thisMonthIncome    = $transService->getThisMonthIncome();
                         // $costVendorRank = $trans->costVendorRank();
-                        $dailyCosts         = $transService->getDailyCostsInRange('2025-06-01', '2025-06-29');
-                        $dailyCostByCategory= $transService->getDailyCostByCategory('2025-06-01', '2025-06-29');
+                        $dailyCosts         = $transService->getDailyCostsInRange($fromDate, $toDate);
+                        $dailyCostByCategory= $transService->getDailyCostByCategory($fromDate, $toDate);
                         // $spendRows      = $trans
                         include 'View/index_v2.php';
                         break;
