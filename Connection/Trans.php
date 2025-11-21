@@ -201,7 +201,7 @@
          */
         public function getLastTransRecord()
         {
-            return $this->query("select trans_no, spend_at from trans_list ORDER BY `trans_no` DESC LIMIT 1");
+            return $this->query("select trans_no, spend_at from trans_list ORDER BY `spend_at` DESC LIMIT 1");
         }
 
     }

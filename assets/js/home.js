@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 });
 
-const varColors  = ["#ff6384", "#36a2eb", "#4caf50", "#ffce56", "#9966ff"];
+const varColors  = ["#fc829dff", "#36a2eb", "#4caf50", "#ffce56", "#9966ff"];
 
 // 產生每個 varColor 的五階漸層色（由深到淺）
 function generateColorShades(hex, steps = 5) {
@@ -203,12 +203,15 @@ const categoryRank = {};
 let datasets = [];
 let categoryDataHistory = [];
 
+let trendChart = null;
+let categoryChart = null;
+
 $(function(){
     
     // 消費趨勢圖表
     const trendCtx      = document.getElementById('trendChart').getContext('2d');
     const categoryCtx   = document.getElementById('categoryChart').getContext('2d');
-
+    // 後續可移除
     Object.values(spend_rows.category).forEach(category_name => {
         datasets.push({
             label: category_name,
@@ -235,12 +238,13 @@ $(function(){
     Object.keys(categoryRank).forEach(categoryName => {
         categoryRank[categoryName].percent = ((categoryRank[categoryName]['amounts'] / categoryTotalCosts) * 100).toFixed(1);
     })
+    // 後續可移除
 
     // console.log(dailyCostByCategory)
     // console.log(categoryRank);
     // 註冊縮放插件
     Chart.register(ChartZoom);
-    const trendChart    = new Chart(trendCtx, {
+    trendChart    = new Chart(trendCtx, {
         type: 'bar',
         data: {
             labels: Object.keys(spend_rows.record),
@@ -334,7 +338,7 @@ $(function(){
         }
     });
     
-    const categoryChart = new Chart(categoryCtx, {
+    categoryChart = new Chart(categoryCtx, {
         type: 'doughnut',
         data: {
             labels: Object.keys(dailyCostByCategory),
@@ -343,12 +347,12 @@ $(function(){
                 backgroundColor: [
                     '#ff9800',
                     '#4caf50',
-                    '#e91e63',
-                    '#9c27b0',
-                    '#607d8b'
+                    '#f96c92ff',
+                    '#c6e540ff',
+                    '#52aad5ff'
                 ],
                 borderWidth: 2,
-                borderColor: '#fff',
+                borderColor: '#ffffffff',
                 hoverBorderWidth: 3
             }]
         },
@@ -426,8 +430,7 @@ $(function(){
 
 
 
-function showDayDetail(date) 
-{
+function showDayDetail(date) {
     fetch(`api/api.php`, {
         method: 'POST',
         body: JSON.stringify({action: 'getDailyCostByDate', date: date }),
@@ -441,7 +444,6 @@ function showDayDetail(date)
         if (dailyRecords && dailyRecords.data.length > 0) {
             let detailHtml = '<ul class="list-group">';
             dailyRecords.data.forEach(item => {
-                // badgeColor   = varColors[datasets.length % varColors.length];
                 amountsColor = item.amount > 0 ? 'bg-success' : 'bg-danger'; 
                 dailyAmount  = dailyAmount + item.amount;
                 detailHtml  += `<li class="list-group-item d-flex justify-content-between align-items-center">
@@ -508,7 +510,7 @@ function applyFilters() {
     const category  = document.getElementById('categoryFilter').value;
     
     // 模擬篩選效果
-    console.log('篩選條件:', { startDate, endDate, category });
+    // console.log('篩選條件:', { startDate, endDate, category });
     
     // 這裡可以加入實際的篩選邏輯
     updateCharts(startDate, endDate, category);
@@ -530,26 +532,145 @@ function generateRandomCategoryData() {
     return Array.from({length: 5}, () => Math.floor(Math.random() * 40) + 10);
 }
 
-function updateCharts(startDate, endDate) {
+async function updateCharts(startDate, endDate) {
     // 模擬更新圖表數據
-    const newData = generateRandomData();
-    trendChart.data.datasets[0].data = newData.trend;
-    trendChart.data.datasets[1].data = newData.income;
+    const newData = await generateRandomData(startDate, endDate);
+
+    console.log(newData)
+    // trendChart.data.datasets[0].data = newData.trend;
+    // trendChart.data.datasets[1].data = newData.income;
+    // console.log(newData)
+    trendChart.data.datasets = newData.data;
+    trendChart.data.labels   = newData.labels;
     trendChart.update();
+    // 重置縮放
+    trendChart.resetZoom();
+    renderCostList(newData.transList)
     
     const newCategoryData = generateRandomCategoryData();
     categoryChart.data.datasets[0].data = newCategoryData;
     categoryChart.update();
     
     // 重置縮放
-    trendChart.resetZoom();
+    // trendChart.resetZoom();
 }
 
-function generateRandomData() {
-    return {
-        trend: Array.from({length: 15}, () => Math.floor(Math.random() * 800) + 100),
-        income: Array.from({length: 15}, (_, i) => i % 2 === 0 ? Math.floor(Math.random() * 1000) + 800 : 0)
-    };
+function renderCostList(costList)
+{
+    let listDom       = '';
+    let totalAmount   = 0;
+    let totalImcome   = 0;
+    let totalExpenses = 0;
+
+    costList.forEach(transRows => {
+
+        let amountHtml = '';
+        const amount = Number(transRows.amount);
+
+        if (amount >= 0) {
+            amountHtml = `<h6 class="mb-0 text-success">+$${amount.toLocaleString()}</h6>`
+            totalImcome   = totalImcome + amount;
+        } else {
+            amountHtml = `<h6 class="mb-0 text-danger">-$${Math.abs(amount).toLocaleString()}</h6>`;
+            totalExpenses = totalExpenses + amount;
+        }
+
+        totalAmount = totalAmount + amount;
+        listDom += `
+            <div class="expense-item borderline"
+                data-amount="${transRows.amount}" 
+                data-date="${transRows.spend_at}" 
+                data-vendor="${transRows.vendor_name}"
+                data-subcategory_id="${transRows.subcategory_id}"
+                data-vendor_id="${transRows.vendor_id}"
+                data-account_id="${transRows.account_id}"
+                data-trans_no="${transRows.trans_no}"
+            >
+                <div class="row align-items-center">
+                    <div class="col-md-1">
+                        <i class="fas ${transRows.icon_name} fa-2x text-secondary"></i>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <span class="badge bg-primary">${transRows.account_name}</span>
+                        <span class="badge bg-info">${transRows.category_name}>${transRows.subcategory_name}</span>
+                    </div>
+
+                    <div class="col-md-7">
+                        <h6 class="mb-1">
+                            <span>${transRows.description}(${transRows.vendor_name})</span>
+                        </h6>
+                        <small class="text-muted">${transRows.spend_at}</small>
+                    </div>
+
+                    <div class="col-md-2">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1 text-center">
+                                ${amountHtml}
+                            </div>
+                            <div class="ms-2 d-flex align-items-center">
+                                <i class="fa-regular fa-pen-to-square" style="cursor:pointer;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `
+    });
+
+    document.getElementsByClassName('stat-value')[0].innerHTML = `$${totalImcome.toLocaleString()}`;
+    document.getElementsByClassName('stat-value')[1].innerHTML = `$${totalExpenses.toLocaleString()}`;
+    document.getElementsByClassName('stat-value')[2].innerHTML = `$${totalAmount.toLocaleString()}`;
+
+    document.getElementById('recordCountFields').innerHTML  = `共 ${costList.length} 筆`;
+    document.getElementById('recordAmountFields').innerHTML = `總共 ${totalAmount} 元`;
+    document.getElementById('expenseList').innerHTML        = listDom;
+}
+
+function generateRandomData(startDate, endDate) {
+
+    return fetch('./api/api.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            action: 'getTransactionTrend',
+            startDate,
+            endDate
+        })
+    })
+    .then(res => res.json())
+    .then(response => {
+
+        const datasets = [];
+        const category = response.dailyCosts.category || {};
+        const record   = response.dailyCosts.record || {};
+
+        console.log("record:", record)
+
+        if (Object.keys(category).length > 0 && Object.keys(record).length > 0) {
+            Object.values(category).forEach(category_name => {
+                datasets.push({
+                    label: category_name,
+                    data: Object.values(record).map(item => {
+                        // console.log("item:", item)
+                        return item[category_name] < 0 ? Math.abs(item[category_name]) : 0;
+                    }),
+                    backgroundColor: varColors[datasets.length % varColors.length],
+                    stack: 'Stack 0'
+                });
+            });
+        }
+
+        return {
+            'labels': Object.keys(record),
+            'data': datasets,
+            'transList': response.transList
+        };
+    })
+    .catch(err => {
+        console.error('fetch generateRandomData error', err);
+        return { labels: [], data: [], transList: [] };
+    });
 }
 
 // 添加動畫效果
@@ -569,14 +690,14 @@ window.addEventListener('load', function() {
 });
 
 // 實時更新統計數據
-setInterval(function() {
-    const statValues = document.querySelectorAll('.stat-value');
-    statValues.forEach(value => {
-        const currentValue = parseInt(value.textContent.replace('$', '').replace(',', ''));
-        const newValue = currentValue + Math.floor(Math.random() * 100) - 50;
-        value.textContent = '$' + newValue.toLocaleString();
-    });
-}, 30000); // 每30秒更新一次
+// setInterval(function() {
+//     const statValues = document.querySelectorAll('.stat-value');
+//     statValues.forEach(value => {
+//         const currentValue = parseInt(value.textContent.replace('$', '').replace(',', ''));
+//         const newValue = currentValue + Math.floor(Math.random() * 100) - 50;
+//         value.textContent = '$' + newValue.toLocaleString();
+//     });
+// }, 30000); // 每30秒更新一次
 
 $(function(){
     const listEl = document.getElementById('expenseList');
@@ -621,7 +742,7 @@ $(function(){
         let visibleCount = 0;
         const q = searchInput.value.trim().toLowerCase();
         getItems().forEach(item => {
-            console.log(item)
+            // console.log(item)
             const text = (item.textContent || '').toLowerCase();
             let amount = parseInt(item.dataset.amount, 10);
             if (q === '') {
@@ -645,4 +766,6 @@ $(function(){
 
     searchInput.addEventListener('input', applySearch);
     clearBtn.addEventListener('click', () => { searchInput.value=''; applySearch(); });
+
+    applyFilters();
 });

@@ -11,7 +11,10 @@
         require 'Connection/Account.php';
         require 'Connection/Category.php';
         require 'Connection/SubCategory.php';
+        require 'Connection/Tag.php';
+        require 'Connection/TransTag.php';
         require 'Service/TransService.php';
+        require 'Helper/Utils.php';
         $trans          = new Trans();
         $transService   = new TransService($trans);
         $route          = isset($_GET['route']) ? $_GET['route'] : 'index';

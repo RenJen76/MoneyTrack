@@ -101,17 +101,25 @@
             $Account        = new Account();
             $Category       = new Category();
             $SubCategory    = new SubCategory();
+            $Tag            = new Tag();
+            $TransTag       = new TransTag();
             $insertRows     = [];
 
             if (($handle = fopen($_FILES['uploadFile']['tmp_name'], "r")) !== FALSE) {
                 while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+
+                    $amount = Utils::parseAmount($data[10], 'TWD');
+                    $tags   = Utils::parseTags($data[13]);
                     if ($data[3]) {
                         // 轉帳交易
                         continue;
                     }
+                    // var_dump($amount);
+                    // var_dump($data[10]);
                     // 有金額及店家名稱
-                    if ((int)$data[10]!='0' && $data[5]!='') {
-                        $hashkey             = hash('sha256', $data[0].$data[2].$data[4].$data[5].$data[7].$data[8].$data[10]);
+                    if ($amount!='0' && $data[5]!='') {
+                        // var_dump($amount);exit;
+                        $hashkey             = hash('sha256', $data[0].$data[2].$data[4].$data[5].$data[7].$data[8].$amount);
                         $TransByHashKey      = $this->trans->getTransByHashKey($hashkey);
                         if ($TransByHashKey) {
                             continue;
@@ -125,10 +133,17 @@
                             'vendorId'       => $Vendor->findOrCreate(addslashes($data[5]))['vendor_id'],
                             'subcategoryId'  => $SubCategory->findOrCreate($categoryCombin[1], $category['category_id'])['subcategory_id'],
                             'spendAt'        => date("Y-m-d H:i:s", strtotime($data[7] . " " . $data[8])),
-                            'amount'         => intval($data[10]),
+                            'amount'         => $amount,
                             'hashkey'        => $hashkey
                         ];
                         $transId             = $this->trans->createTrans($rows);
+                        
+                        if (count($tags) > 0) {
+                            foreach ($tags as $tagName) {
+                                $tagId = $Tag->findOrCreate($tagName)['tag_id'];
+                                $TransTag->createTransTag($transId, $tagId);
+                            }
+                        }
                         
                         if ($transId!=0) {
                             $insertRows[]    = $this->trans->getTrans($transId)[0];
@@ -163,7 +178,6 @@
         {
             $amounts   = 0;
             $today     = date('Y-m-d');
-            $today     = '2025-06-01';
             $fromMonth = date('Y-m-01', strtotime($today));
             $asOfMonth = date('Y-m-t', strtotime($today));
             $trans  = $this->trans->transBetweenDays($fromMonth, $asOfMonth);
@@ -184,7 +198,6 @@
         {
             $amounts   = 0;
             $today     = date('Y-m-d');
-            $today     = '2025-06-01';
             $fromMonth = date('Y-m-01', strtotime($today));
             $asOfMonth = date('Y-m-t', strtotime($today));
             $trans  = $this->trans->transBetweenDays($fromMonth, $asOfMonth);
