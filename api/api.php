@@ -152,6 +152,23 @@
                 'transList'  => $transList
             ]);
         break;
+
+        case 'getCategoryTrend':
+            if (!isset($postData['startDate']) || empty($postData['endDate'])) {
+                echo json_encode(['success' => false, 'error' => '日期不可為空'], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+            $startDate   = date("Y-m-d", strtotime($postData['startDate']));
+            $endDate     = date("Y-m-d", strtotime($postData['endDate']));
+            $trans       = new Trans();
+            $transService= new transService($trans);
+            $dailyCosts  = $transService->getDailyCostsInRange($startDate, $endDate);
+            $transList   = $transService->getTransRecord($startDate, $endDate);
+            echo json_encode([
+                'dailyCosts' => $dailyCosts,
+                'transList'  => $transList
+            ]);
+        break;
         default:
             echo json_encode(['success' => false, 'error' => '參數異常'], JSON_UNESCAPED_UNICODE);
         break;

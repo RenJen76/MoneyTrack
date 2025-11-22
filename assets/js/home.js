@@ -529,7 +529,57 @@ function filterExpenseList(category) {
 }
 
 function generateRandomCategoryData() {
-    return Array.from({length: 5}, () => Math.floor(Math.random() * 40) + 10);
+
+    return fetch('./api/api.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            action: 'getCategoryTrend',
+            startDate,
+            endDate
+        })
+    })
+    .then(res => res.json())
+    .then(response => {
+
+        const datasets = [];
+        const category = response.dailyCosts.category || {};
+        const record   = response.dailyCosts.record || {};
+
+        console.log("record:", record)
+
+        if (Object.keys(category).length > 0 && Object.keys(record).length > 0) {
+            Object.keys(dailyCostByCategory).forEach((category_name, row) => {
+                detailedCategoryData[category_name] = {
+                    'labels': Object.keys(dailyCostByCategory[category_name]),
+                    'datasets': [{
+                        data: Object.values(dailyCostByCategory[category_name]),
+                        backgroundColor: varColorShades[row]
+                    }]
+                };
+                categoryRank[category_name] = {
+                    'amounts' : Math.abs(Object.values(dailyCostByCategory[category_name]).reduce((sum, item) => sum + item, 0))
+                };
+            });
+
+            categoryTotalCosts = Object.values(categoryRank).reduce((sum, item) => sum + item.amounts, 0);
+            Object.keys(categoryRank).forEach(categoryName => {
+                categoryRank[categoryName].percent = ((categoryRank[categoryName]['amounts'] / categoryTotalCosts) * 100).toFixed(1);
+            })
+
+            return Array.from({length: 5}, () => Math.floor(Math.random() * 40) + 10);
+        }
+
+        return {
+            'labels': Object.keys(record),
+            'data': datasets,
+            'transList': response.transList
+        };
+    })
+    .catch(err => {
+        console.error('fetch generateRandomData error', err);
+        return { labels: [], data: [], transList: [] };
+    });
 }
 
 async function updateCharts(startDate, endDate) {
@@ -547,7 +597,7 @@ async function updateCharts(startDate, endDate) {
     trendChart.resetZoom();
     renderCostList(newData.transList)
     
-    const newCategoryData = generateRandomCategoryData();
+    const newCategoryData = await generateRandomCategoryData();
     categoryChart.data.datasets[0].data = newCategoryData;
     categoryChart.update();
     
@@ -555,8 +605,7 @@ async function updateCharts(startDate, endDate) {
     // trendChart.resetZoom();
 }
 
-function renderCostList(costList)
-{
+function renderCostList(costList) {
     let listDom       = '';
     let totalAmount   = 0;
     let totalImcome   = 0;
